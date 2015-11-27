@@ -1,5 +1,4 @@
 with Ada.Characters.Latin_1;
-with Gnat.Sockets;
 
 private package SSDP.Utils is
    use Ada.Characters;
@@ -12,6 +11,8 @@ private package SSDP.Utils is
    function Create_Message(Static_Part: in String;
 			   Headers: in Message_Header_Array) return String;
 
-   procedure Send_Message(Message: in String);
+   procedure Send_Message(Device: in out Device_Type; Message: in String);
+
+   function Activate_Connection return Broadcast_Connection;
 
 end SSDP.Utils;

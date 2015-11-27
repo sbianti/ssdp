@@ -3,26 +3,24 @@ package SSDP.Service_Provider is
    function To_US(Str: String) return Unbounded_String
      renames To_Unbounded_String;
 
-   type Device_Type is private;
+   type Service_Provider_Device_Type is new Device_Type with private;
 
    function Initialize_Device(Service_Type, Universal_Serial_Number,
 				Location, AL, -- only one is required
 				Cache_Control, Expires: String) -- dito
-			     return Device_Type;
+			     return Service_Provider_Device_Type;
 
-   procedure M_Search_Response(Device: in Device_Type;
+   procedure M_Search_Response(Device: in out Service_Provider_Device_Type;
 			       USN_Requester: in String;
 			       Other_Headers: in Message_Header_Array);
 
-   procedure Notify_Alive(Device: in Device_Type;
+   procedure Notify_Alive(Device: in out Service_Provider_Device_Type;
 			  Other_Headers: in Message_Header_Array);
 
-   procedure Notify_Bye_Bye(Device: in Device_Type);
+   procedure Notify_Bye_Bye(Device: in out Service_Provider_Device_Type);
 
 private
-   type Device_Type is record
-      Service_Type,
-      Universal_Serial_Number,
+   type Service_Provider_Device_Type is new Device_Type with record
       Location, AL, -- only one is required
       Cache_Control, Expires: Unbounded_String; -- dito
    end record;

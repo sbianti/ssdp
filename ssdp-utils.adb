@@ -31,18 +31,27 @@ package body SSDP.Utils is
       end;
    end Create_Message;
 
-   procedure Send_Message(Message: in String) is
-      Socket: Socket_Type;
-      Address: Sock_Addr_Type;
-      Channel: Stream_Access;
+   function Activate_Connection return Broadcast_Connection is
+      BC: Broadcast_Connection; -- is DOWN and NOT listening
    begin
-      Address.Addr := Inet_Addr(Multicast_Address);
-      Address.Port := Multicast_Port;
-      Create_Socket(Socket, Family_Inet, Socket_Datagram);
-      Set_Socket_Option(Socket, Ip_Protocol_For_Ip_Level,
-			(Add_Membership, Address.Addr, Any_Inet_Addr));
-      Channel := Stream(Socket, Address);
-      String'Output(Channel, Message);
+      BC.Address.Addr := Inet_Addr(Multicast_Address);
+      BC.Address.Port := Multicast_Port;
+      Create_Socket(BC.Socket, Family_Inet, Socket_Datagram);
+      Set_Socket_Option(BC.Socket, Ip_Protocol_For_Ip_Level,
+			(Add_Membership, BC.Address.Addr, Any_Inet_Addr));
+      BC.Channel := Stream(BC.Socket, BC.Address);
+      BC.Is_Down := False;
+
+      return BC; -- UP but still NOT listening
+   end Activate_Connection;
+
+   procedure Send_Message(Device: in out Device_Type; Message: in String) is
+   begin
+      if Device.Connection.Is_Down then
+	 Device.Connection := Activate_Connection;
+      end if;
+
+      String'Output(Device.Connection.Channel, Message);
    end Send_Message;
 
 end SSDP.Utils;
