@@ -27,7 +27,6 @@ package body SSDP.Service_Provider is
       end if;
 
       return (To_US(Service_Type), To_US(Universal_Serial_Number),
-	      Activate_Connection,
 	      To_US(Location), To_US(AL),
 	      To_US(Cache_Control), To_US(Expires));
    end Initialize_Device;

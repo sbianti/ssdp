@@ -1,8 +1,12 @@
 with Ada.Text_IO;
+with Ada.Streams;
+
+with Gnat.Sockets;
+
 with SSDP.Utils;
 
 package body SSDP.Service_Finder is
-   use SSDP.Utils;
+   use SSDP.Utils, Gnat.Sockets;
 
    M_Search_Star_Line: constant String := "M-SEARCH * HTTP/1.1";
 
@@ -15,7 +19,8 @@ package body SSDP.Service_Finder is
 	   with "service_type AND universal_serial_number should be not null";
       end if;
 
-      Device.Connection := Activate_Connection;
+      Activate_Multicast_Connection;
+
       Device.Service_Type := To_US(Service_Type);
       Device.Universal_Serial_Number := To_US(Universal_Serial_Number);
 
@@ -74,35 +79,44 @@ package body SSDP.Service_Finder is
    begin
       accept Start(Dev: in out Finder_Device_Type) do
 	 Device := Dev;
-	 if Device.Connection.Is_Down then
-	    Device.Connection := Activate_Connection;
-	    Device.Connection.Is_Listening := True;
-	 end if;
       end Start;
+
+      Set_Socket_Option(Global_Multicast_Connection.Socket,
+			Ip_Protocol_For_Ip_Level, (Multicast_Loop, False));
 
       loop
 	 declare
-	    use Ada.Text_IO;
-	    Message: String := String'Input(Device.Connection.Channel);
+	    use Ada.Text_IO, Ada.Streams;
+	    Msg: Stream_Element_Array(1..500);
+	    Last : Stream_Element_Offset;
+	    Addr: Sock_Addr_Type;
 	 begin
-	    Put_Line("[[" & Message & "]]");
+	    Receive_Socket(Global_Multicast_Connection.Socket, Msg, Last, Addr);
+	    Put_Line("Depuis " & Image(Addr) & ":");
+	    Put_Line(To_String(Msg(1..Last)));
 	 end;
       end loop;
    end Listener;
 
    procedure Start_Listening(Device: in out Finder_Device_Type) is
    begin
-      if not Device.Connection.Is_Listening then
+      if not Global_Multicast_Connection.Is_Listening then
 	 Listener.Start(Device);
-	 Device.Connection.Is_Listening := True;
+	 Global_Multicast_Connection.Is_Listening := True;
       end if;
    end Start_Listening;
 
    procedure Stop_Listening(Device: in out Finder_Device_Type) is
+      Address: Sock_Addr_Type renames Global_Multicast_Connection.Address;
    begin
-      if Device.Connection.Is_Listening then
+      if Global_Multicast_Connection.Is_Listening then
 	 abort Listener;
-	 Device.Connection.Is_Listening := False;
+	 Set_Socket_Option(Global_Multicast_Connection.Socket,
+			   Ip_Protocol_For_Ip_Level,
+			   (Drop_Membership, Address.Addr, Any_Inet_Addr));
+	 Close_Socket(Global_Multicast_Connection.Socket);
+	 Free(Global_Multicast_Connection.Channel);
+	 Global_Multicast_Connection.Is_Listening := False;
       end if;
    end Stop_Listening;
 
