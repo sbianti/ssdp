@@ -65,9 +65,10 @@ package body SSDP.Service_Finder is
       Send_Message(Device_Type(Device),
 		   Create_Message(Start_Line & "ST: " &
 				    To_String(Device.Service_Type) & EOL &
-				    "USN: " &
+				    "S: " &
 				    To_String(Device.Universal_Serial_Number) &
-				    EOL, Other_Header));
+				    EOL & "Man: ""ssdp:discover""" & EOL,
+				  Other_Header));
    end M_Search;
 
    task Listener is
