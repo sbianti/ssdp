@@ -3,9 +3,6 @@ with SSDP.Utils;
 package body SSDP.Service_Provider is
    use SSDP.Utils;
 
-   Notify_Line: constant String := "NOTIFY * HTTP/1.1" & EOL;
-   Status_Line: constant String := "HTTP/1.1 200 OK" & EOL;
-
    function Initialize_Device(Service_Type, Universal_Serial_Number,
 				Location, AL, -- only one is required
 				Cache_Control, Expires: String) -- dito
@@ -53,7 +50,7 @@ package body SSDP.Service_Provider is
 	with "Header «S» (Universal Service Type of the requester) is missing";
       end if;
 
-      Required_Part := To_US(Status_Line & "S: " & USN_Requester & EOL &
+      Required_Part := To_US(Status_Line & EOL & "S: " & USN_Requester & EOL &
 			       "USN: ") & Device.Universal_Serial_Number &
 	To_US(EOL & "ST: ") & Device.Service_Type & To_US(EOL);
 
@@ -94,7 +91,7 @@ package body SSDP.Service_Provider is
 	   " at least one is required";
       end if;
 
-      Required_Part := To_US(Notify_Line & "NT: ") & Device.Service_Type &
+      Required_Part := To_US(Notify_Line & EOL & "NT: ") & Device.Service_Type &
 	To_US(EOL & "USN: ") & Device.Universal_Serial_Number &
 	To_US(EOL & "NTS: ssdp:alive" & EOL);
 
@@ -122,7 +119,7 @@ package body SSDP.Service_Provider is
    end Notify_Alive;
 
    procedure Notify_Bye_Bye(Device: in out Service_Provider_Device_Type) is
-      Start_Line: constant String := Notify_Line;
+      Start_Line: constant String := Notify_Line & EOL;
    begin
       if Device.Service_Type = "" then raise Header_Malformed
 	with "Header «NT» (Service Type) is missing";

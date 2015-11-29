@@ -24,7 +24,9 @@ package SSDP is
    --     ST_Header: Unbounded_String;
    --  end record;
 
-   Header_Malformed: exception;
+   Header_Malformed,
+   Not_An_SSDP_Message,
+   SSDP_Message_Malformed: exception;
 
 private
 
