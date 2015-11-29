@@ -72,15 +72,12 @@ package body SSDP.Service_Finder is
    end M_Search;
 
    task Listener is
-      entry Start(Dev: in out Finder_Device_Type);
+      entry Start;
    end Listener;
 
    task body Listener is
-      Device: Finder_Device_Type;
    begin
-      accept Start(Dev: in out Finder_Device_Type) do
-	 Device := Dev;
-      end Start;
+      accept Start;
 
       Set_Socket_Option(Global_Multicast_Connection.Socket,
 			Ip_Protocol_For_Ip_Level, (Multicast_Loop, False));
@@ -99,15 +96,15 @@ package body SSDP.Service_Finder is
       end loop;
    end Listener;
 
-   procedure Start_Listening(Device: in out Finder_Device_Type) is
+   procedure Start_Listening is
    begin
       if not Global_Multicast_Connection.Is_Listening then
-	 Listener.Start(Device);
+	 Listener.Start;
 	 Global_Multicast_Connection.Is_Listening := True;
       end if;
    end Start_Listening;
 
-   procedure Stop_Listening(Device: in out Finder_Device_Type) is
+   procedure Stop_Listening is
       Address: Sock_Addr_Type renames Global_Multicast_Connection.Address;
    begin
       if Global_Multicast_Connection.Is_Listening then

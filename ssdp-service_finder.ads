@@ -24,9 +24,9 @@ package SSDP.Service_Finder is
    procedure M_Search(Device: in out Finder_Device_Type;
 		      Other_Header: in Message_Header_Array);
 
-   procedure Start_Listening(Device: in out Finder_Device_Type);
+   procedure Start_Listening;
 
-   procedure Stop_Listening(Device: in out Finder_Device_Type);
+   procedure Stop_Listening;
 private
    use Ada.Containers;
 
