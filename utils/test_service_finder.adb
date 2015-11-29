@@ -15,7 +15,7 @@ procedure Test_Service_Finder is
    Str: String(1..10);
    Lg: Natural;
 begin
-   Start_Listening(Device);
+   Start_Listening;
    delay 0.5;
 
    Put_Line("Envoie du Discover:");
@@ -26,5 +26,5 @@ begin
    M_Search(Device, NULL_Header);
 
    Get_Line(Str, Lg);
-   Stop_Listening(Device);
+   Stop_Listening;
 end Test_Service_Finder;
