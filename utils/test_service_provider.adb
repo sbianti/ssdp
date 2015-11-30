@@ -18,11 +18,19 @@ procedure Test_Service_Provider is
 		       AL => "<http://halsensortester.mp.intel.com>",
 		       Cache_Control => "max-age = 600",
 		       Expires => "");
+
+   Str: String(1..10);
+   Lg: Natural;
 begin
+   Start_Listening;
+   delay 0.2;
+
    Put_Line("Envoie du Notify:");
    Notify_Alive(Device, Notify_Header);
 
-   delay 5.5;
+   Get_Line(Str, Lg);
    Put_Line("Au revoir !");
    Notify_Bye_Bye(Device);
+
+   Stop_Listening;
 end Test_Service_Provider;
