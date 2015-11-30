@@ -188,7 +188,7 @@ package body SSDP.Service_Finder is
       end Parse_Message;
    begin
       Set_Socket_Option(Global_Multicast_Connection.Socket,
-			Ip_Protocol_For_Ip_Level, (Multicast_Loop, False));
+			Ip_Protocol_For_Ip_Level, (Multicast_Loop, True));
 
       loop
 	 begin

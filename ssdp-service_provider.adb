@@ -182,6 +182,9 @@ package body SSDP.Service_Provider is
 	    Pl_Debug(Exception_Name(Ex) & ": " & Exception_Message(Ex));
       end Parse_Message;
    begin
+      Set_Socket_Option(Global_Multicast_Connection.Socket,
+			Ip_Protocol_For_Ip_Level, (Multicast_Loop, True));
+
       loop
 	 begin
 	    Receive_Socket(Global_Multicast_Connection.Socket, Msg, Last, Addr);
