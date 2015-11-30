@@ -4,6 +4,16 @@ with Ada.Text_IO;
 package body SSDP.Utils is
    use Gnat.Sockets;
 
+   task body Listener is
+      Job: Job_Procedure_Access;
+   begin
+      accept Start(Job: in Job_Procedure_Access) do
+	 Listener.Job := Job;
+      end Start;
+
+      Job.all;
+   end Listener;
+
    procedure Pl_Warning(Str: in String) is
       use Ada.Text_IO;
    begin

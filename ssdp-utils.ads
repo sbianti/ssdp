@@ -25,6 +25,12 @@ private package SSDP.Utils is
 
    Global_Multicast_Connection: Multicast_Connection;
 
+   type Job_Procedure_Access is access procedure;
+
+   task Listener is
+      entry Start(Job: in Job_Procedure_Access);
+   end Listener;
+
    procedure Pl_Warning(Str: in String);
 
    procedure Pl_Debug(Str: in String);
