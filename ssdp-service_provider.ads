@@ -19,6 +19,10 @@ package SSDP.Service_Provider is
 
    procedure Notify_Bye_Bye(Device: in out Service_Provider_Device_Type);
 
+   procedure Start_Listening;
+
+   procedure Stop_Listening;
+
 private
    type Service_Provider_Device_Type is new Device_Type with record
       Location, AL, -- only one is required

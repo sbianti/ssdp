@@ -1,3 +1,10 @@
+with Ada.Streams;
+with Ada.Characters.Handling;
+with Ada.Strings.Fixed;
+with Ada.Exceptions;
+
+with Gnat.Sockets;
+
 with SSDP.Utils;
 
 package body SSDP.Service_Provider is
@@ -22,6 +29,8 @@ package body SSDP.Service_Provider is
 	 raise Header_Malformed
 	   with "Cache_Control or Expires should be set";
       end if;
+
+      Activate_Multicast_Connection;
 
       return (To_US(Service_Type), To_US(Universal_Serial_Number),
 	      To_US(Location), To_US(AL),
@@ -135,5 +144,66 @@ package body SSDP.Service_Provider is
 		     "USN: " & To_String(Device.Universal_Serial_Number) & EOL &
 		     "NTS: ssdp:byebye" & EOL & EOL);
    end Notify_Bye_Bye;
+
+   procedure Service_Provider_Job is
+      use Ada.Streams, Ada.Exceptions, Gnat.Sockets;
+
+      Msg: Stream_Element_Array(1..500);
+      Last: Stream_Element_Offset;
+      Addr: Sock_Addr_Type;
+
+      procedure Parse_Message(Message: in String) is
+	 use Ada.Characters.Handling, Ada.Strings.Fixed;
+
+	 Lines: Line_Array := Parse_Lines(Message);
+	 Posn_M_SEARCH, Posn_Reply_M_SEARCH: Natural;
+      begin
+	 Posn_M_SEARCH := Index(To_Upper(Lines(1).all),
+				M_Search_Star_Line);
+	 if Posn_M_SEARCH > 1 then raise SSDP_Message_Malformed
+	   with "M-SEARCH line doesn't begin at character 0";
+	 elsif Posn_M_SEARCH = 1 then
+	    Pl_Debug("M-search received");
+	    return;
+	 end if;
+
+	 Posn_Reply_M_SEARCH := Index(To_Upper(Lines(1).all),
+				      Status_Line);
+	 if Posn_Reply_M_SEARCH > 1 then raise SSDP_Message_Malformed
+	   with "Reply to M-SEARCH line doesn't begin at character 0";
+	 elsif Posn_Reply_M_SEARCH = 1 then
+	    Pl_Debug("Reply to M-SEARCH received");
+	    return;
+	 end if;
+
+	 -- Uninteresting message --
+      exception
+	 when Ex: SSDP_Message_Malformed =>
+	    Pl_Debug(Exception_Name(Ex) & ": " & Exception_Message(Ex));
+      end Parse_Message;
+   begin
+      loop
+	 begin
+	    Receive_Socket(Global_Multicast_Connection.Socket, Msg, Last, Addr);
+	    Pl_Debug("____________________________________________________");
+	    Pl_Debug("From " & Image(Addr));
+	    Parse_Message(To_String(Msg(1..Last)));
+	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
+	 exception
+	    when E: Not_An_SSDP_Message | SSDP_Message_Malformed =>
+	       Pl_Debug(Exception_Message(E));
+	 end;
+      end loop;
+   end Service_Provider_Job;
+
+   procedure Start_Listening is
+   begin
+      SSDP.Utils.Start_Listening(Service_Provider_Job'access);
+   end Start_Listening;
+
+   procedure Stop_Listening is
+   begin
+      SSDP.Utils.Stop_Listening;
+   end Stop_Listening;
 
 end Ssdp.Service_Provider;

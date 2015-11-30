@@ -81,48 +81,6 @@ package body SSDP.Service_Finder is
       procedure Parse_Message(Message: in String) is
 	 use Ada.Characters.Handling, Ada.Strings.Fixed;
 
-	 type Line_Array is array (Natural range <>) of access String;
-
-	 function Parse_Lines(Message: in String) return Line_Array is
-	    Number_Of_Lines: Natural;
-	    -- A body could be in this message, so we need to get the
-	    -- first position of a double EOL:
-	    Posn_Of_Double_EOL: Natural;
-	 begin
-	    if Message'Length < SSDP_Message_Min_Size then
-	       raise Not_An_SSDP_Message
-		 with "message a way to short to be an ssdp message (" &
-		 Natural'Image(Message'Length) & " character(s))";
-	    end if;
-
-	    Posn_Of_Double_EOL := Index(Message, EOL & EOL);
-	    Number_Of_Lines := -- +1 is for: -1 + EOL'Length
-	      Count(Message(Message'First..Posn_Of_Double_EOL + 1), EOL);
-
-	    declare
-	       Lines: Line_Array(1..Number_Of_Lines);
-	       From, Posn: Natural;
-	       LF: constant String := EOL(2..2);
-	    begin
-	       From := Message'First;
-
-	       for I in Lines'Range
-	       loop
-		  Posn := Index(Message, EOL, From);
-		  Lines(I) := new String'(Message(From..Posn - 1));
-		  -- if the line contains a line feed, the line is broken:
-		  if Index(Lines(I).all, LF) /= 0 then
-		     raise SSDP_Message_Malformed
-		       with "a line itself contains an end of line:" &
-		       "[" & Lines(I).all & "]";
-		  end if;
-		  From := Posn + 2;
-	       end loop;
-
-	       return Lines;
-	    end;
-	 end Parse_Lines;
-
 	 procedure Get_Notify_Info(Lines: in Line_Array) is
 	    use Ada.Strings;
 

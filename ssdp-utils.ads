@@ -25,6 +25,9 @@ private package SSDP.Utils is
 
    Global_Multicast_Connection: Multicast_Connection;
 
+   -- Useful type for message parsing in job_procedure:
+   type Line_Array is array (Natural range <>) of access String;
+
    task Listener is
       entry Start(Job: in Job_Procedure_Access);
    end Listener;
@@ -43,6 +46,8 @@ private package SSDP.Utils is
    procedure Send_Message(Device: in out Device_Type; Message: in String);
 
    procedure Activate_Multicast_Connection;
+
+   function Parse_Lines(Message: in String) return Line_Array;
 
    procedure Start_Listening(Job: in Job_Procedure_Access);
 
