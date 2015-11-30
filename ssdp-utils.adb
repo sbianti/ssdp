@@ -99,4 +99,26 @@ package body SSDP.Utils is
       String'Write(Global_Multicast_Connection.Channel, Message);
    end Send_Message;
 
+   procedure Start_Listening(Job: in Job_Procedure_Access) is
+   begin
+      if not Global_Multicast_Connection.Is_Listening then
+	 Listener.Start(Job);
+	 Global_Multicast_Connection.Is_Listening := True;
+      end if;
+   end Start_Listening;
+
+   procedure Stop_Listening is
+      Address: Sock_Addr_Type renames Global_Multicast_Connection.Address;
+   begin
+      if Global_Multicast_Connection.Is_Listening then
+	 abort Listener;
+	 Set_Socket_Option(Global_Multicast_Connection.Socket,
+			   Ip_Protocol_For_Ip_Level,
+			   (Drop_Membership, Address.Addr, Any_Inet_Addr));
+	 Close_Socket(Global_Multicast_Connection.Socket);
+	 Free(Global_Multicast_Connection.Channel);
+	 Global_Multicast_Connection.Is_Listening := False;
+      end if;
+   end Stop_Listening;
+
 end SSDP.Utils;

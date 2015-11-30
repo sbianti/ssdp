@@ -9,6 +9,8 @@ package SSDP is
 
    type Device_Type is tagged private;
 
+   type Job_Procedure_Access is access procedure;
+
     ----------------------------------------------------------------------------
     --  SSDP messages are http 1.1 messages where:			      --
     --   ⋅service type URI represents the type of service (ex: refrigerator)  --

@@ -248,24 +248,12 @@ package body SSDP.Service_Finder is
 
    procedure Start_Listening is
    begin
-      if not Global_Multicast_Connection.Is_Listening then
-	 Listener.Start(Finder_Job'Access);
-	 Global_Multicast_Connection.Is_Listening := True;
-      end if;
+      SSDP.Utils.Start_Listening(Finder_Job'access);
    end Start_Listening;
 
    procedure Stop_Listening is
-      Address: Sock_Addr_Type renames Global_Multicast_Connection.Address;
    begin
-      if Global_Multicast_Connection.Is_Listening then
-	 abort Listener;
-	 Set_Socket_Option(Global_Multicast_Connection.Socket,
-			   Ip_Protocol_For_Ip_Level,
-			   (Drop_Membership, Address.Addr, Any_Inet_Addr));
-	 Close_Socket(Global_Multicast_Connection.Socket);
-	 Free(Global_Multicast_Connection.Channel);
-	 Global_Multicast_Connection.Is_Listening := False;
-      end if;
+      SSDP.Utils.Stop_Listening;
    end Stop_Listening;
 
 end SSDP.Service_Finder;

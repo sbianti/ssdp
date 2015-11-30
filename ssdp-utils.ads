@@ -25,8 +25,6 @@ private package SSDP.Utils is
 
    Global_Multicast_Connection: Multicast_Connection;
 
-   type Job_Procedure_Access is access procedure;
-
    task Listener is
       entry Start(Job: in Job_Procedure_Access);
    end Listener;
@@ -45,5 +43,9 @@ private package SSDP.Utils is
    procedure Send_Message(Device: in out Device_Type; Message: in String);
 
    procedure Activate_Multicast_Connection;
+
+   procedure Start_Listening(Job: in Job_Procedure_Access);
+
+   procedure Stop_Listening;
 
 end SSDP.Utils;
