@@ -1,7 +1,31 @@
 with Ada.Unchecked_Conversion;
+with Ada.Text_IO;
+with Ada.Strings.Fixed;
 
 package body SSDP.Utils is
    use Gnat.Sockets;
+
+   task body Listener is
+      Job: Job_Procedure_Access;
+   begin
+      accept Start(Job: in Job_Procedure_Access) do
+	 Listener.Job := Job;
+      end Start;
+
+      Job.all;
+   end Listener;
+
+   procedure Pl_Warning(Str: in String) is
+      use Ada.Text_IO;
+   begin
+      Put_Line(Standard_Error, "Warning:" & Str);
+   end Pl_Warning;
+
+   procedure Pl_Debug(Str: in String) is
+      use Ada.Text_IO;
+   begin
+      pragma Debug(Put_Line(Str));
+   end Pl_Debug;
 
    function To_Char is new Ada.Unchecked_Conversion(Stream_Element, Character);
    function To_String(Msg: in Stream_Element_Array) return String is
@@ -75,5 +99,69 @@ package body SSDP.Utils is
 
       String'Write(Global_Multicast_Connection.Channel, Message);
    end Send_Message;
+
+   function Parse_Lines(Message: in String) return Line_Array is
+      use Ada.Strings.Fixed;
+
+      Number_Of_Lines: Natural;
+      -- A body could be in this message, so we need to get the
+      -- first position of a double EOL:
+      Posn_Of_Double_EOL: Natural;
+   begin
+      if Message'Length < SSDP_Message_Min_Size then
+	 raise Not_An_SSDP_Message
+	   with "message a way to short to be an ssdp message (" &
+	   Natural'Image(Message'Length) & " character(s))";
+      end if;
+
+      Posn_Of_Double_EOL := Index(Message, EOL & EOL);
+      Number_Of_Lines := -- +1 is for: -1 + EOL'Length
+	Count(Message(Message'First..Posn_Of_Double_EOL + 1), EOL);
+
+      declare
+	 Lines: Line_Array(1..Number_Of_Lines);
+	 From, Posn: Natural;
+	 LF: constant String := EOL(2..2);
+      begin
+	 From := Message'First;
+
+	 for I in Lines'Range
+	 loop
+	    Posn := Index(Message, EOL, From);
+	    Lines(I) := new String'(Message(From..Posn - 1));
+	    -- if the line contains a line feed, the line is broken:
+	    if Index(Lines(I).all, LF) /= 0 then
+	       raise SSDP_Message_Malformed
+		 with "a line itself contains an end of line:" &
+		 "[" & Lines(I).all & "]";
+	    end if;
+	    From := Posn + 2;
+	 end loop;
+
+	 return Lines;
+      end;
+   end Parse_Lines;
+
+   procedure Start_Listening(Job: in Job_Procedure_Access) is
+   begin
+      if not Global_Multicast_Connection.Is_Listening then
+	 Listener.Start(Job);
+	 Global_Multicast_Connection.Is_Listening := True;
+      end if;
+   end Start_Listening;
+
+   procedure Stop_Listening is
+      Address: Sock_Addr_Type renames Global_Multicast_Connection.Address;
+   begin
+      if Global_Multicast_Connection.Is_Listening then
+	 abort Listener;
+	 Set_Socket_Option(Global_Multicast_Connection.Socket,
+			   Ip_Protocol_For_Ip_Level,
+			   (Drop_Membership, Address.Addr, Any_Inet_Addr));
+	 Close_Socket(Global_Multicast_Connection.Socket);
+	 Free(Global_Multicast_Connection.Channel);
+	 Global_Multicast_Connection.Is_Listening := False;
+      end if;
+   end Stop_Listening;
 
 end SSDP.Utils;

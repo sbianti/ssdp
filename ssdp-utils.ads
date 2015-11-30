@@ -5,7 +5,12 @@ with Gnat.Sockets;
 private package SSDP.Utils is
    use Ada.Characters, Ada.Streams, Gnat.Sockets;
 
+   SSDP_Message_Min_Size: constant Natural := 16; -- obviously it should be more
    EOL: constant String := Latin_1.CR & Latin_1.LF;
+
+   M_Search_Star_Line: constant String := "M-SEARCH * HTTP/1.1";
+   Notify_Line: constant String := "NOTIFY * HTTP/1.1";
+   Status_Line: constant String := "HTTP/1.1 200 OK";
 
    Multicast_Address: constant String := "239.255.255.250";
    Multicast_Port: constant Gnat.Sockets.Port_Type := 1900;
@@ -20,6 +25,19 @@ private package SSDP.Utils is
 
    Global_Multicast_Connection: Multicast_Connection;
 
+   -- Useful type for message parsing in job_procedure:
+   type Line_Array is array (Natural range <>) of access String;
+
+   task Listener is
+      entry Start(Job: in Job_Procedure_Access);
+   end Listener;
+
+   procedure Pl_Warning(Str: in String);
+
+   procedure Pl_Debug(Str: in String);
+
+   pragma Inline_Always(Pl_Warning, Pl_Debug);
+
    function To_String(Msg: in Stream_Element_Array) return String;
 
    function Create_Message(Static_Part: in String;
@@ -28,5 +46,11 @@ private package SSDP.Utils is
    procedure Send_Message(Device: in out Device_Type; Message: in String);
 
    procedure Activate_Multicast_Connection;
+
+   function Parse_Lines(Message: in String) return Line_Array;
+
+   procedure Start_Listening(Job: in Job_Procedure_Access);
+
+   procedure Stop_Listening;
 
 end SSDP.Utils;

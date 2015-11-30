@@ -27,6 +27,7 @@ package SSDP.Service_Finder is
    procedure Start_Listening;
 
    procedure Stop_Listening;
+
 private
    use Ada.Containers;
 

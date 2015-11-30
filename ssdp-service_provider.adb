@@ -1,10 +1,14 @@
+with Ada.Streams;
+with Ada.Characters.Handling;
+with Ada.Strings.Fixed;
+with Ada.Exceptions;
+
+with Gnat.Sockets;
+
 with SSDP.Utils;
 
 package body SSDP.Service_Provider is
    use SSDP.Utils;
-
-   Notify_Line: constant String := "NOTIFY * HTTP/1.1" & EOL;
-   Status_Line: constant String := "HTTP/1.1 200 OK" & EOL;
 
    function Initialize_Device(Service_Type, Universal_Serial_Number,
 				Location, AL, -- only one is required
@@ -25,6 +29,8 @@ package body SSDP.Service_Provider is
 	 raise Header_Malformed
 	   with "Cache_Control or Expires should be set";
       end if;
+
+      Activate_Multicast_Connection;
 
       return (To_US(Service_Type), To_US(Universal_Serial_Number),
 	      To_US(Location), To_US(AL),
@@ -53,7 +59,7 @@ package body SSDP.Service_Provider is
 	with "Header «S» (Universal Service Type of the requester) is missing";
       end if;
 
-      Required_Part := To_US(Status_Line & "S: " & USN_Requester & EOL &
+      Required_Part := To_US(Status_Line & EOL & "S: " & USN_Requester & EOL &
 			       "USN: ") & Device.Universal_Serial_Number &
 	To_US(EOL & "ST: ") & Device.Service_Type & To_US(EOL);
 
@@ -94,7 +100,7 @@ package body SSDP.Service_Provider is
 	   " at least one is required";
       end if;
 
-      Required_Part := To_US(Notify_Line & "NT: ") & Device.Service_Type &
+      Required_Part := To_US(Notify_Line & EOL & "NT: ") & Device.Service_Type &
 	To_US(EOL & "USN: ") & Device.Universal_Serial_Number &
 	To_US(EOL & "NTS: ssdp:alive" & EOL);
 
@@ -122,7 +128,7 @@ package body SSDP.Service_Provider is
    end Notify_Alive;
 
    procedure Notify_Bye_Bye(Device: in out Service_Provider_Device_Type) is
-      Start_Line: constant String := Notify_Line;
+      Start_Line: constant String := Notify_Line & EOL;
    begin
       if Device.Service_Type = "" then raise Header_Malformed
 	with "Header «NT» (Service Type) is missing";
@@ -138,5 +144,69 @@ package body SSDP.Service_Provider is
 		     "USN: " & To_String(Device.Universal_Serial_Number) & EOL &
 		     "NTS: ssdp:byebye" & EOL & EOL);
    end Notify_Bye_Bye;
+
+   procedure Service_Provider_Job is
+      use Ada.Streams, Ada.Exceptions, Gnat.Sockets;
+
+      Msg: Stream_Element_Array(1..500);
+      Last: Stream_Element_Offset;
+      Addr: Sock_Addr_Type;
+
+      procedure Parse_Message(Message: in String) is
+	 use Ada.Characters.Handling, Ada.Strings.Fixed;
+
+	 Lines: Line_Array := Parse_Lines(Message);
+	 Posn_M_SEARCH, Posn_Reply_M_SEARCH: Natural;
+      begin
+	 Posn_M_SEARCH := Index(To_Upper(Lines(1).all),
+				M_Search_Star_Line);
+	 if Posn_M_SEARCH > 1 then raise SSDP_Message_Malformed
+	   with "M-SEARCH line doesn't begin at character 0";
+	 elsif Posn_M_SEARCH = 1 then
+	    Pl_Debug("M-search received");
+	    return;
+	 end if;
+
+	 Posn_Reply_M_SEARCH := Index(To_Upper(Lines(1).all),
+				      Status_Line);
+	 if Posn_Reply_M_SEARCH > 1 then raise SSDP_Message_Malformed
+	   with "Reply to M-SEARCH line doesn't begin at character 0";
+	 elsif Posn_Reply_M_SEARCH = 1 then
+	    Pl_Debug("Reply to M-SEARCH received");
+	    return;
+	 end if;
+
+	 -- Uninteresting message --
+      exception
+	 when Ex: SSDP_Message_Malformed =>
+	    Pl_Debug(Exception_Name(Ex) & ": " & Exception_Message(Ex));
+      end Parse_Message;
+   begin
+      Set_Socket_Option(Global_Multicast_Connection.Socket,
+			Ip_Protocol_For_Ip_Level, (Multicast_Loop, True));
+
+      loop
+	 begin
+	    Receive_Socket(Global_Multicast_Connection.Socket, Msg, Last, Addr);
+	    Pl_Debug("____________________________________________________");
+	    Pl_Debug("From " & Image(Addr));
+	    Parse_Message(To_String(Msg(1..Last)));
+	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
+	 exception
+	    when E: Not_An_SSDP_Message | SSDP_Message_Malformed =>
+	       Pl_Debug(Exception_Message(E));
+	 end;
+      end loop;
+   end Service_Provider_Job;
+
+   procedure Start_Listening is
+   begin
+      SSDP.Utils.Start_Listening(Service_Provider_Job'access);
+   end Start_Listening;
+
+   procedure Stop_Listening is
+   begin
+      SSDP.Utils.Stop_Listening;
+   end Stop_Listening;
 
 end Ssdp.Service_Provider;
