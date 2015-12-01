@@ -23,9 +23,11 @@ with SSDP.Service_Finder;
 with Get_Options; --https://github.com/sbianti/GetOptions
 
 procedure Test_Service_Finder is
-   use SSDP.Service_Finder, Ada.Text_IO;
+   use SSDP, Ada.Text_IO;
 
    procedure Default_Scheduling is
+      use SSDP.Service_Finder;
+
       Discover_Header: SSDP.Message_Header_Array :=
 	(To_US("Toto: inutile:pardon"), To_US("Zak: important:rien"));
 
@@ -52,6 +54,52 @@ procedure Test_Service_Finder is
       Stop_Listening;
    end Default_Scheduling;
 
+   type Test_Options is (Batch);
+
+   package Get_Test_Options is new Get_Options(Test_Options);
+   use Get_Test_Options;
+
+   EOL: constant Character := Character'Val(10);
+
+   Help_Section: constant Unbounded_String := To_US("Example:");
+
+   Example_Value: constant Unbounded_String :=
+     To_US("""discover,3,0.5,2.5 sleep,10.0 discover,3,1.0,3.0""");
+
+   Description: constant Unbounded_String :=
+     To_US("Three DISCOVER sent with a random delay between 0""5 and 2""5" &
+	     EOL & "followed by a delay of 10""" & EOL &
+	     "followed by three DISCOVER spaced by a random duration between " &
+	     " 1"" and 3""");
+
+   Help_Header: constant String :=
+     "   Test program for service finder API" & EOL & EOL &
+     "   usage: " & Command_Name & " [--batch «batch_line»]" & EOL & EOL &
+     "     batch_line ≡ command [command ]*" & EOL &
+     "     command ≡ command_name[,occurence_number[,random_time_range]" &
+     "|[,fix_delay]]" & EOL &
+     "       command_name ∈ {discover, sleep}" & EOL &
+     "       occurence_number ≡ INTEGER_VALUE" & EOL &
+     "       fix_delay ≡ DECIMAL_VALUE" & EOL &
+     "       random_time_range ≡ lower_bound,upper_bound" & EOL &
+     "       lower_bound and upper_bound ∈ DECIMAL_VALUES";
+
+   Result: Option_Result_Array;
+
+   Setting: Option_Setting_Array := (Batch =>
+				       (Short_Name => No_Short_Name,
+					Needs_Value => Yes,
+					Short_Description => Description,
+					Value_Form => Example_Value)
+				    );
 begin
-   Default_Scheduling;
+   if Argument_Count = 0 then
+      Default_Scheduling;
+   else
+      Result := Parse(Setting, Help_Header, "", Help_Sections =>
+			(Batch => Help_Section));
+   end if;
+
+exception
+   when End_Of_Program_With_Help_Menu => Service_Finder.Stop_Listening;
 end Test_Service_Finder;
