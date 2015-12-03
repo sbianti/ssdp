@@ -1,10 +1,10 @@
 --------------------------------------------------------------------------------
---  Test_Service_Finder 						      --
+--  This file is part of SSDP package   				      --
 --  									      --
 --  Copyright © 2015 Sébastien Bianti					      --
 --  									      --
 --  This program is free software; you can redistribute it and/or modify      --
---  it under the terms of the GNU General Public License version 2 as	      --
+--  it under the terms of the GNU General Public License version 3 as	      --
 --  published by the Free Software Foundation.				      --
 --  									      --
 --  This program is distributed in the hope that it will be useful,	      --
@@ -18,27 +18,34 @@
 --------------------------------------------------------------------------------
 
 with Ada.Text_IO;
+with Ada.Exceptions;
 with SSDP.Service_Finder;
+with SSDP.Command_Scheduling;
 
 with Get_Options; --https://github.com/sbianti/GetOptions
 
 procedure Test_Service_Finder is
-   use SSDP, Ada.Text_IO;
+   use SSDP, Ada.Exceptions;
+
+   Device: Service_Finder.Finder_Device_Type;
+
+   Discover_Header: SSDP.Message_Header_Array :=
+     (Service_Finder.To_US("Toto: inutile:pardon"),
+      Service_Finder.To_US("Zak: important:rien"));
+
+   Null_Header: SSDP.Message_Header_Array(1..0);
+
+   UUID: constant String := "uuid:0dbcf247-96ca-4d58-b3de-a22cd083125b";
+
+   Str: String(1..10);
+
+   Lg: Natural;
 
    procedure Default_Scheduling is
-      use SSDP.Service_Finder;
-
-      Discover_Header: SSDP.Message_Header_Array :=
-	(To_US("Toto: inutile:pardon"), To_US("Zak: important:rien"));
-
-      Null_Header: SSDP.Message_Header_Array(1..0);
-
-      UUID: constant String := "uuid:0dbcf247-96ca-4d58-b3de-a22cd083125b";
-
-      Device: Finder_Device_Type := Initialize_Device("sncf:TGV", UUID);
-      Str: String(1..10);
-      Lg: Natural;
+      use SSDP.Service_Finder, Ada.Text_IO;
    begin
+      Device := Initialize_Device("sncf:TGV", UUID);
+
       Start_Listening;
 
       delay 0.5;
@@ -67,10 +74,10 @@ procedure Test_Service_Finder is
      To_US("""discover,3,0.5,2.5 sleep,10.0 discover,3,1.0,3.0""");
 
    Description: constant Unbounded_String :=
-     To_US("Three DISCOVER sent with a random delay between 0""5 and 2""5" &
-	     EOL & "followed by a delay of 10""" & EOL &
+     To_US("Three DISCOVER sent with a random delay between 0”5 and 2”5" &
+	     EOL & "followed by a delay of 10”" & EOL &
 	     "followed by three DISCOVER spaced by a random duration between " &
-	     " 1"" and 3""");
+	     "1” and 3”");
 
    Help_Header: constant String :=
      "   Test program for service finder API" & EOL & EOL &
@@ -92,14 +99,36 @@ procedure Test_Service_Finder is
 					Short_Description => Description,
 					Value_Form => Example_Value)
 				    );
+
+   package Scheduling is new SSDP.Command_Scheduling(Finder_Command_Name_Type);
+   use Scheduling;
+
+   Schedule: Schedule_Type;
 begin
    if Argument_Count = 0 then
       Default_Scheduling;
    else
+      Device := Service_Finder.Initialize_Device("sncf:TGV", UUID);
+
       Result := Parse(Setting, Help_Header, "", Help_Sections =>
 			(Batch => Help_Section));
+
+      Service_Finder.Start_Listening;
+
+      Schedule := Parse(Get_Value(Result(Batch), 1));
+
+      Batch(Device, Discover_Header, Schedule);
+
+      -- Waiting for user interaction:
+      Ada.Text_IO.Get_Line(Str, Lg);
+      Service_Finder.Stop_Listening;
    end if;
 
 exception
-   when End_Of_Program_With_Help_Menu => Service_Finder.Stop_Listening;
+   when End_Of_Program_With_Help_Menu =>
+      Service_Finder.Stop_Listening;
+
+   when E: Scheduling.Parsing_Error =>
+      Ada.Text_IO.Put_Line(Exception_Message(E));
+      Service_Finder.Stop_Listening;
 end Test_Service_Finder;
