@@ -153,8 +153,9 @@ package body SSDP.Utils is
    procedure Stop_Listening is
       Address: Sock_Addr_Type renames Global_Multicast_Connection.Address;
    begin
+      abort Listener;
+
       if Global_Multicast_Connection.Is_Listening then
-	 abort Listener;
 	 Set_Socket_Option(Global_Multicast_Connection.Socket,
 			   Ip_Protocol_For_Ip_Level,
 			   (Drop_Membership, Address.Addr, Any_Inet_Addr));
