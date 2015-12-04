@@ -59,7 +59,7 @@ package body SSDP.Service_Provider is
    procedure M_Search_Response(Device: in Service_Provider_Device_Type;
 			       USN_Requester: in String;
 			       Other_Headers: in Message_Header_Array) is
-      Required_Part: Unbounded_String;
+      Required_Part, USN_Variable_Part: Unbounded_String;
    begin
       if Device.Service_Type = "" then raise Header_Malformed
 	with "Header «ST» (Service Type) is missing";
@@ -74,12 +74,16 @@ package body SSDP.Service_Provider is
 	   with "Cache-control or Expires missing (at least one is required)";
       end if;
 
-      if USN_Requester = "" then raise Header_Malformed
-	with "Header «S» (Universal Service Type of the requester) is missing";
+      if USN_Requester = "" then
+	 Pl_Debug("Optional header «S» (Universal Service Type of " &
+		    "the requester) is missing");
+	 USN_Variable_Part := To_US("");
+      else
+	 USN_Variable_Part := To_US("S: " & USN_Requester & EOL);
       end if;
 
-      Required_Part := To_US(Status_Line & EOL & "S: " & USN_Requester & EOL &
-			       "USN: ") & Device.Universal_Serial_Number &
+      Required_Part := To_US(Status_Line & EOL) & USN_Variable_Part &
+	To_US("USN: ") & Device.Universal_Serial_Number &
 	To_US(EOL & "ST: ") & Device.Service_Type & To_US(EOL);
 
       if Device.Cache_Control /= "" then
