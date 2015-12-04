@@ -144,28 +144,28 @@ package body SSDP.Service_Finder is
 	       << Continue >>
 	    end loop;
 
-	       if NTS_Line = 0 then raise SSDP_Message_Malformed
-		 with "No NTS field found";
-	       elsif Device.Universal_Serial_Number = "" then
-		  raise SSDP_Message_Malformed with "No USN field found";
-	       elsif Device.Service_Type = "" then
-		  raise SSDP_Message_Malformed with "No ST field found";
-	       else
-		  declare
-		     Last: Natural := Lines(NTS_Line).all'Last;
-		     First: Natural := Lines(NTS_Line).all'First + 5;
-		     NTS: String := Trim(Lines(NTS_Line)(First..Last),
-					 Side => Both);
-		  begin
-		     if NTS = "ssdp:byebye" then
-			Pl_Debug("It's a byebye :¯(");
-		     elsif NTS = "ssdp:alive" then
-			Pl_Debug("It's an alive :)");
-		     else raise SSDP_Message_Malformed
-		       with "Unknown NTS field: " & NTS;
-		     end if;
-		  end;
-	       end if;
+	    if NTS_Line = 0 then raise SSDP_Message_Malformed
+	      with "No NTS field found";
+	    elsif Device.Universal_Serial_Number = "" then
+	       raise SSDP_Message_Malformed with "No USN field found";
+	    elsif Device.Service_Type = "" then
+	       raise SSDP_Message_Malformed with "No ST field found";
+	    else
+	       declare
+		  Last: Natural := Lines(NTS_Line).all'Last;
+		  First: Natural := Lines(NTS_Line).all'First + 5;
+		  NTS: String := Trim(Lines(NTS_Line)(First..Last),
+				      Side => Both);
+	       begin
+		  if NTS = "ssdp:byebye" then
+		     Pl_Debug("It's a byebye :¯(");
+		  elsif NTS = "ssdp:alive" then
+		     Pl_Debug("It's an alive :)");
+		  else raise SSDP_Message_Malformed
+		    with "Unknown NTS field: " & NTS;
+		  end if;
+	       end;
+	    end if;
 	 end Get_Notify_Info;
 
 	 Lines: Line_Array := Parse_Lines(Message);
