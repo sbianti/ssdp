@@ -22,10 +22,12 @@ with Ada.Exceptions;
 with SSDP.Service_Finder;
 with SSDP.Command_Scheduling;
 
+with Test_Utils;
+
 with Get_Options; --https://github.com/sbianti/GetOptions
 
 procedure Test_Service_Finder is
-   use SSDP, Ada.Exceptions;
+   use SSDP, Ada.Exceptions, Test_Utils;
 
    Device: Service_Finder.Finder_Device_Type;
 
@@ -129,6 +131,6 @@ exception
       Service_Finder.Stop_Listening;
 
    when E: Scheduling.Parsing_Error =>
-      Ada.Text_IO.Put_Line(Exception_Message(E));
+      Pl_Error(Exception_Message(E));
       Service_Finder.Stop_Listening;
 end Test_Service_Finder;
