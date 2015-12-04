@@ -21,18 +21,88 @@ with Ada.Streams;
 with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Exceptions;
+with Ada.Containers.Vectors;
 
 with Gnat.Sockets;
 
 with SSDP.Utils;
 
 package body SSDP.Service_Provider is
-   use SSDP.Utils;
+   use SSDP.Utils, Ada.Containers;
+
+   subtype SPD_Type is Service_Provider_Device_Type;
+   -- Each service_provider initialized has its USN kept in this list
+   -- this allows to know if a discover message should be responded
+   -- knowing its service_type.
+   subtype Device_Count_Type is Count_Type range 1..100;
+   package Device_Vectors is new Vectors(Device_Count_Type, SPD_Type);
+   Device_Vector: Device_Vectors.Vector;
+
+   type Device_Type_Array is array (Device_Count_Type range <>) of SPD_Type;
+
+   function Matching_Devices(Service_Type: in String)
+			    return Device_Type_Array is
+      Count: Device_Count_Type'Base := 0;
+   begin
+      for I in 1..Device_Vector.Length loop
+	 if Device_Vector.Element(I).Service_Type = To_US(Service_Type) then
+	    Count := Count + 1;
+	 end if;
+      end loop;
+
+      declare
+	 Devices: Device_Type_Array(1..Count);
+	 N: Device_Count_Type := 1;
+      begin
+	 if Count = 0 then
+	    return Devices;
+	 end if;
+
+	 for I in 1..Device_Vector.Length loop
+	    if Device_Vector.Element(I).Service_Type = To_US(Service_Type) then
+	       Devices(N) := Device_Vector.Element(I);
+	       N := N + 1;
+	    end if;
+	 end loop;
+
+	 return Devices;
+      end;
+   end Matching_Devices;
+
+   procedure Remove_Devices(USN: in Unbounded_String) is
+      -- Removes all devices with this USN (could be many)
+      Count: Natural := 0;
+   begin
+      for I in 1..Device_Vector.Length loop
+	 if Device_Vector.Element(I).Universal_Serial_Number = USN then
+	    Pl_Debug("Delete device:" & To_String
+		       (Device_Vector.Element(I).Universal_Serial_Number)
+		    );
+	    Device_Vector.Delete(I);
+	 end if;
+      end loop;
+
+      Pl_Debug("removed" & Count'Img & " device(s) with USN " & To_String(USN));
+   end Remove_Devices;
 
    function Initialize_Device(Service_Type, Universal_Serial_Number,
 				Location, AL, -- only one is required
 				Cache_Control, Expires: String) -- dito
 			     return Service_Provider_Device_Type is
+
+      function Service_Already_Exists(USN, ST: in String) return Boolean is
+      begin
+	 for I in 1..Device_Vector.Length loop
+	    if Device_Vector(I).Universal_Serial_Number = USN and
+	      Device_Vector(I).Service_Type = ST then
+	       return True;
+	    end if;
+	 end loop;
+
+	 return False;
+      end Service_Already_Exists;
+
+      Device: Service_Provider_Device_Type;
    begin
       if Service_Type = "" or Universal_Serial_Number = "" then
 	 raise Header_Malformed
@@ -49,11 +119,23 @@ package body SSDP.Service_Provider is
 	   with "Cache_Control or Expires should be set";
       end if;
 
+      if Service_Already_Exists(Universal_Serial_Number, Service_Type) then
+	 raise Bad_Service
+	   with "A service with USN=" & Universal_Serial_Number &
+	   " and ST=" & Service_Type & " already exists";
+      end if;
+
       Activate_Multicast_Connection;
 
-      return (To_US(Service_Type), To_US(Universal_Serial_Number),
-	      To_US(Location), To_US(AL),
-	      To_US(Cache_Control), To_US(Expires));
+      Device := (To_US(Service_Type), To_US(Universal_Serial_Number),
+		 To_US(Location), To_US(AL),
+		 To_US(Cache_Control), To_US(Expires));
+
+      Device_Vector.Append(Device);
+      Pl_Debug("Adding service:" & Universal_Serial_Number & " / " &
+		 Service_Type);
+
+      return Device;
    end Initialize_Device;
 
    procedure M_Search_Response(Device: in Service_Provider_Device_Type;
@@ -159,6 +241,8 @@ package body SSDP.Service_Provider is
 	 raise Header_Malformed
 	with "Header «USN» (Universal Service Type) is missing";
       end if;
+
+      Remove_Devices(Device.Universal_Serial_Number);
 
       Send_Message(Start_Line & "NT: " & To_String(Device.Service_Type) & EOL &
 		     "USN: " & To_String(Device.Universal_Serial_Number) & EOL &

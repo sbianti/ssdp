@@ -42,6 +42,7 @@ package SSDP.Service_Provider is
 
    procedure Stop_Listening;
 
+   Bad_Service: exception;
 private
    type Service_Provider_Device_Type is new Device_Type with record
       Location, AL, -- only one is required
