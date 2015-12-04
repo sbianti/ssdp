@@ -17,8 +17,6 @@
 --  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA --
 --------------------------------------------------------------------------------
 
-with Ada.Containers.Vectors;
-
 package SSDP.Service_Finder is
 
    function To_US(Str: String) return Unbounded_String
@@ -48,19 +46,7 @@ package SSDP.Service_Finder is
    procedure Stop_Listening;
 
 private
-   use Ada.Containers;
 
-   subtype Service_Count_Type is Count_Type range 1..100;
+   type Finder_Device_Type is new Device_Type with null record;
 
-   type Service_Device_Type is new Device_Type with record
-      Location,
-      Expires: Unbounded_String;
-   end record;
-
-   package Service_Vectors is new Vectors(Service_Count_Type,
-					  Service_Device_Type);
-
-   type Finder_Device_Type is new Device_Type with record
-      Services: Service_Vectors.Vector := Service_Vectors.Empty_Vector;
-   end record;
 end SSDP.Service_Finder;

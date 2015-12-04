@@ -21,13 +21,28 @@ with Ada.Streams;
 with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Exceptions;
+with Ada.Containers.Vectors;
 
 with Gnat.Sockets;
 
 with SSDP.Utils;
 
 package body SSDP.Service_Finder is
-   use SSDP.Utils, Gnat.Sockets;
+   use SSDP.Utils, Gnat.Sockets, Ada.Containers;
+
+   type Service_Device_Type is new Device_Type with record
+      Location,
+      Expires: Unbounded_String;
+   end record;
+
+   -- Only one service_finder should usually exist, however, we choose to allow
+   --  the existence of several ones.
+   -- This vector contains the list of the discovered devices and permit to
+   --  manage the received events for every declared service_finder.
+   subtype Service_Count_Type is Count_Type range 1..100;
+   package Service_Vectors is new Vectors(Service_Count_Type,
+					  Service_Device_Type);
+   Services: Service_Vectors.Vector := Service_Vectors.Empty_Vector;
 
    function Initialize_Device(Service_Type, Universal_Serial_Number: in String)
 			     return Finder_Device_Type is
@@ -224,7 +239,7 @@ package body SSDP.Service_Finder is
 
    procedure Start_Listening is
    begin
-      SSDP.Utils.Start_Listening(Finder_Job'access);
+      SSDP.Utils.Start_Listening(Finder_Job'Access);
    end Start_Listening;
 
    procedure Stop_Listening is
