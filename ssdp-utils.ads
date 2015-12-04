@@ -38,7 +38,7 @@ private package SSDP.Utils is
 
    procedure Pl_Debug(Str: in String);
 
-   pragma Inline_Always(Pl_Warning, Pl_Debug);
+   pragma Inline_Always(Pl_Error, Pl_Warning, Pl_Debug);
 
    function To_String(Msg: in Stream_Element_Array) return String;
 
