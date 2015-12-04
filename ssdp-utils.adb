@@ -27,8 +27,9 @@ package body SSDP.Utils is
       pragma Debug(Put_Line(Str));
    end Pl_Debug;
 
-   function To_Char is new Ada.Unchecked_Conversion(Stream_Element, Character);
    function To_String(Msg: in Stream_Element_Array) return String is
+      function To_Char is new Ada.Unchecked_Conversion(Stream_Element,
+						       Character);
       Str: String(1..Msg'Length);
    begin
       for I in Msg'Range loop
