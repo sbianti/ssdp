@@ -42,7 +42,7 @@ package body SSDP.Service_Finder is
    subtype Service_Count_Type is Count_Type range 1..100;
    package Service_Vectors is new Vectors(Service_Count_Type,
 					  Service_Device_Type);
-   Services: Service_Vectors.Vector := Service_Vectors.Empty_Vector;
+   Services: Service_Vectors.Vector;
 
    function Initialize_Device(Service_Type, Universal_Serial_Number: in String)
 			     return Finder_Device_Type is
@@ -154,7 +154,7 @@ package body SSDP.Service_Finder is
 	       end if;
 
 	       Pl_Debug("Extra info: [" & Lines(I).all & "]");
-	       << Continue >>
+	       <<Continue>>
 	    end loop;
 
 	    if NTS_Line = 0 then raise SSDP_Message_Malformed
@@ -204,7 +204,7 @@ package body SSDP.Service_Finder is
 		  if NTS = "ssdp:byebye" then
 		     Pl_Debug("It's a byebye :¯(");
 		     Bye_Bye(Device.Universal_Serial_Number,
-			    Device.Service_Type);
+			     Device.Service_Type);
 		  elsif NTS = "ssdp:alive" then
 		     Pl_Debug("It's an alive :)");
 		     Update(Device.Universal_Serial_Number,
