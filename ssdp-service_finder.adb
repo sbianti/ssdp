@@ -103,7 +103,7 @@ package body SSDP.Service_Finder is
 	    use Ada.Strings;
 
 	    Device: Device_Type;
-	    NTS_Index: Natural := 0;
+	    NTS_Line: Natural := 0;
 	    Posn_USN, Posn_NT, Posn_NTS: Natural;
 	    First, Last: Natural;
 	 begin
@@ -136,7 +136,7 @@ package body SSDP.Service_Finder is
 	       if Posn_NTS > 1 then raise SSDP_Message_Malformed
 		 with "NTS doesn't begin at character 0";
 	       elsif Posn_NTS = 1 then
-		  NTS_Index := I;
+		  NTS_Line := I;
 		  goto Continue;
 	       end if;
 
@@ -144,7 +144,7 @@ package body SSDP.Service_Finder is
 	       << Continue >>
 	    end loop;
 
-	       if NTS_Index = 0 then raise SSDP_Message_Malformed
+	       if NTS_Line = 0 then raise SSDP_Message_Malformed
 		 with "No NTS field found";
 	       elsif Device.Universal_Serial_Number = "" then
 		  raise SSDP_Message_Malformed with "No USN field found";
@@ -152,9 +152,9 @@ package body SSDP.Service_Finder is
 		  raise SSDP_Message_Malformed with "No ST field found";
 	       else
 		  declare
-		     Last: Natural := Lines(NTS_Index).all'Last;
-		     First: Natural := Lines(NTS_Index).all'First + 5;
-		     NTS: String := Trim(Lines(NTS_Index)(First..Last),
+		     Last: Natural := Lines(NTS_Line).all'Last;
+		     First: Natural := Lines(NTS_Line).all'First + 5;
+		     NTS: String := Trim(Lines(NTS_Line)(First..Last),
 					 Side => Both);
 		  begin
 		     if NTS = "ssdp:byebye" then
