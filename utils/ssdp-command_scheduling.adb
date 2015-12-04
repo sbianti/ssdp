@@ -254,7 +254,7 @@ package body SSDP.Command_Scheduling is
 	       end loop;
 
 	       raise Parsing_Error
-	       with "Bad command name:" & LF & Command_Debug;
+		 with "Bad command name:" & LF & Command_Debug;
 	 end;
 
 	 Current := Next + 1;
@@ -270,7 +270,7 @@ package body SSDP.Command_Scheduling is
    exception
       when Parsing_Complete => return Schedule;
       when Constraint_Error =>
-	 SSDP.Utils.Pl_Warning("Parsing Error");
+	 SSDP.Utils.Pl_Error("Parsing failed");
 	 raise Parsing_Error;
    end Parse;
 
