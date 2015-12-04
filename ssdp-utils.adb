@@ -20,11 +20,14 @@
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO;
 with Ada.Strings.Fixed;
+with Ada.Exceptions;
 
 package body SSDP.Utils is
    use Gnat.Sockets;
 
    task body Listener is
+      use Ada.Exceptions;
+
       Job: Job_Procedure_Access;
    begin
       accept Start(Job: in Job_Procedure_Access) do
@@ -32,6 +35,8 @@ package body SSDP.Utils is
       end Start;
 
       Job.all;
+   exception
+      when E: others => Pl_Error("Task listener: " & Exception_Message(E));
    end Listener;
 
    procedure Pl_Error(Str: in String) is
