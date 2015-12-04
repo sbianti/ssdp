@@ -18,14 +18,6 @@ package SSDP is
     --  service, ex: upnp:uuid:bla:… for a device that has a UUID             --
     ----------------------------------------------------------------------------
 
-   --  type SSDP_Record_Type(Location_Number: Natural) is record
-   --     Service_Type_Uri: Unbounded_String;
-   --     Unique_Service_Name_Uri: Unbounded_String;
-   --     Expiration_Announcement: Calendar.Time;
-   --     Location: Location_Array(1..Location_Number);
-   --     ST_Header: Unbounded_String;
-   --  end record;
-
    type Command_Name_Type is (Discover, Sleep, Alive, Bye_Bye);
 
    -- Restricted command_name types:
