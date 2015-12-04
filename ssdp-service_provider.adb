@@ -69,7 +69,7 @@ package body SSDP.Service_Provider is
 	with "Header «USN» (Universal Service Type) is missing";
       end if;
 
-      if Device.Cache_Control = "" or Device.Expires = "" then
+      if Device.Cache_Control = "" and Device.Expires = "" then
 	 raise Header_Malformed
 	   with "Cache-control or Expires missing (at least one is required)";
       end if;
