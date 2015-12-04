@@ -32,6 +32,8 @@ private package SSDP.Utils is
       entry Start(Job: in Job_Procedure_Access);
    end Listener;
 
+   procedure Pl_Error(Str: in String);
+
    procedure Pl_Warning(Str: in String);
 
    procedure Pl_Debug(Str: in String);

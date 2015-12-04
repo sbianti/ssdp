@@ -15,10 +15,16 @@ package body SSDP.Utils is
       Job.all;
    end Listener;
 
+   procedure Pl_Error(Str: in String) is
+      use Ada.Text_IO;
+   begin
+      Put_Line(Standard_Error, "Error: " & Str);
+   end Pl_Error;
+
    procedure Pl_Warning(Str: in String) is
       use Ada.Text_IO;
    begin
-      Put_Line(Standard_Error, "Warning:" & Str);
+      Put_Line(Standard_Error, "Warning: " & Str);
    end Pl_Warning;
 
    procedure Pl_Debug(Str: in String) is
@@ -35,6 +41,7 @@ package body SSDP.Utils is
       for I in Msg'Range loop
 	 Str(Natural(I)) := To_Char(Msg(I));
       end loop;
+
       return Str;
    end To_String;
 
