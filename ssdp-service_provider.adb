@@ -257,7 +257,84 @@ package body SSDP.Service_Provider is
       Addr: Sock_Addr_Type;
 
       procedure Parse_Message(Message: in String) is
-	 use Ada.Characters.Handling, Ada.Strings.Fixed;
+	 use Ada.Characters.Handling, Ada.Strings.Fixed, Ada.Strings;
+
+	 procedure Get_M_Search_Info(Lines: in Line_Array) is
+	    Posn: Natural;
+	    First, Last: Natural;
+	    Man_Line, ST_Line, S_Line: Natural := 0;
+	 begin
+	    for I in Lines'Range loop
+	       Posn := Index(To_Upper(Lines(I).all), "MAN:");
+	       if Posn = 1 then
+		  Man_Line := I;
+		  goto Continue;
+	       end if;
+
+	       Posn := Index(To_Upper(Lines(I).all), "ST:");
+	       if Posn = 1 then
+		  ST_Line := I;
+		  goto Continue;
+	       end if;
+
+	       Posn := Index(To_Upper(Lines(I).all), "S:");
+	       if Posn = 1 then
+		  S_Line := I;
+		  goto Continue;
+	       end if;
+
+	       Pl_Debug("Extra info: [" & Lines(I).all & "]");
+	   <<Continue>>
+	    end loop;
+
+	    if Man_Line = 0 then raise SSDP_Message_Malformed
+	      with "No Man field found. " &
+	      "Should be present with the value ssdp:discover";
+	    elsif ST_Line = 0 then raise SSDP_Message_Malformed
+	      with "No ST (Service Type) field found.";
+	    elsif S_Line = 0 then
+	       Pl_Debug("No optional S field (Universal Service Name) found.");
+	    end if;
+
+	    First := Lines(Man_Line)'First + 4;
+	    Last := Lines(Man_Line)'Last;
+	    if Trim(Lines(Man_Line)(First..Last),
+		    Both) /= """ssdp:discover""" then
+	       raise SSDP_Message_Malformed
+		 with "unmanaged M-Search message with Man field ≠ " &
+		 "ssdp:discover. Here:" &
+		 Trim(Lines(Man_Line)(First..Last), Both);
+	    end if;
+
+	    First := Lines(ST_Line)'First + 3;
+	    Last := Lines(ST_Line)'Last;
+
+	    declare
+	       Devices: Device_Type_Array :=
+		 Matching_Devices(Trim(Lines(ST_Line)(First..Last), Both));
+	       S_Line_First: Natural;
+	       USN_M_Search: Unbounded_String;
+	    begin
+	       if S_Line /= 0 then
+		  S_Line_First := Lines(S_Line)'First + 2;
+		  USN_M_Search := To_US
+		    (Trim(Lines(S_Line)(S_Line_First..Lines(S_Line)'Last),
+			  Both));
+	       else
+		  USN_M_Search := To_US("");
+	       end if;
+	    Pl_Debug("USN_M_SEARCH: " & To_String(USN_M_Search));
+	       for I in Devices'Range loop
+		  Pl_Debug("Envoie du device:" &
+			     To_String(Devices(I).Universal_Serial_Number) &
+			  " avec: " & To_String(Devices(I).Cache_Control));
+		  M_Search_Response(Devices(I), To_String(USN_M_Search),
+				    (1 => To_US("Que-dale:rien")));
+	       end loop;
+	    exception
+	       when E: Header_Malformed => Pl_Debug(Exception_Message(E));
+	    end;
+	 end Get_M_Search_Info;
 
 	 Lines: Line_Array := Parse_Lines(Message);
 	 Posn_M_SEARCH, Posn_Reply_M_SEARCH: Natural;
@@ -268,6 +345,7 @@ package body SSDP.Service_Provider is
 	   with "M-SEARCH line doesn't begin at character 0";
 	 elsif Posn_M_SEARCH = 1 then
 	    Pl_Debug("M-search received");
+	    Get_M_Search_Info(Lines(2..Lines'Last));
 	    return;
 	 end if;
 
