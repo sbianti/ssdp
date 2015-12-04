@@ -57,7 +57,7 @@ package body SSDP.Command_Scheduling is
 
 	 function Coma_Missing_After_Sleep(Bad_Char: in Character)
 					    return String is
-	    Message: constant String :=  LF & "',<value>' missing after sleep:";
+	    Message: constant String :=  "',<value>' missing after sleep:";
 	 begin
 	    if Bad_Char = Latin_1.Nul then
 	       return Message & LF & Command_Debug;
@@ -68,8 +68,7 @@ package body SSDP.Command_Scheduling is
 	 end Coma_Missing_After_Sleep;
 
 	 function Value_Missing_After_Coma(Bad_Val: in String) return String is
-	    Message: constant String := LF &
-	      "value missing after character ','";
+	    Message: constant String := "value missing after character ','";
 	 begin
 	    if Bad_Val = "" then
 	       return Message & LF & Command_Debug;
@@ -81,7 +80,7 @@ package body SSDP.Command_Scheduling is
 
 	 function Bad_Character_Debug return String is
 	 begin
-	    return LF & "character after " & Command_Name'Img &
+	    return "character after " & Command_Name'Img &
 	      " command name should be ',' or ' ' here: " &
 	      ''' & Commands_String(Current) & ''' & LF & Command_Debug;
 	 end Bad_Character_Debug;
