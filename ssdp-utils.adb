@@ -15,10 +15,16 @@ package body SSDP.Utils is
       Job.all;
    end Listener;
 
+   procedure Pl_Error(Str: in String) is
+      use Ada.Text_IO;
+   begin
+      Put_Line(Standard_Error, "Error: " & Str);
+   end Pl_Error;
+
    procedure Pl_Warning(Str: in String) is
       use Ada.Text_IO;
    begin
-      Put_Line(Standard_Error, "Warning:" & Str);
+      Put_Line(Standard_Error, "Warning: " & Str);
    end Pl_Warning;
 
    procedure Pl_Debug(Str: in String) is
@@ -27,13 +33,15 @@ package body SSDP.Utils is
       pragma Debug(Put_Line(Str));
    end Pl_Debug;
 
-   function To_Char is new Ada.Unchecked_Conversion(Stream_Element, Character);
    function To_String(Msg: in Stream_Element_Array) return String is
+      function To_Char is new Ada.Unchecked_Conversion(Stream_Element,
+						       Character);
       Str: String(1..Msg'Length);
    begin
       for I in Msg'Range loop
 	 Str(Natural(I)) := To_Char(Msg(I));
       end loop;
+
       return Str;
    end To_String;
 
@@ -91,7 +99,7 @@ package body SSDP.Utils is
       -- UP but still NOT listening
    end Activate_Multicast_Connection;
 
-   procedure Send_Message(Device: in out Device_Type; Message: in String) is
+   procedure Send_Message(Message: in String) is
    begin
       if Global_Multicast_Connection.Is_Down then
 	 Activate_Multicast_Connection;
@@ -153,8 +161,9 @@ package body SSDP.Utils is
    procedure Stop_Listening is
       Address: Sock_Addr_Type renames Global_Multicast_Connection.Address;
    begin
+      abort Listener;
+
       if Global_Multicast_Connection.Is_Listening then
-	 abort Listener;
 	 Set_Socket_Option(Global_Multicast_Connection.Socket,
 			   Ip_Protocol_For_Ip_Level,
 			   (Drop_Membership, Address.Addr, Any_Inet_Addr));

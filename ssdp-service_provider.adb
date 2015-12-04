@@ -37,7 +37,7 @@ package body SSDP.Service_Provider is
 	      To_US(Cache_Control), To_US(Expires));
    end Initialize_Device;
 
-   procedure M_Search_Response(Device: in out Service_Provider_Device_Type;
+   procedure M_Search_Response(Device: in Service_Provider_Device_Type;
 			       USN_Requester: in String;
 			       Other_Headers: in Message_Header_Array) is
       Required_Part: Unbounded_String;
@@ -73,11 +73,10 @@ package body SSDP.Service_Provider is
 		  Device.Expires & To_US(EOL));
       end if;
 
-      Send_Message(Device_Type(Device),
-		   Create_Message(To_String(Required_Part), Other_Headers));
+      Send_Message(Create_Message(To_String(Required_Part), Other_Headers));
    end M_Search_Response;
 
-   procedure Notify_Alive(Device: in out Service_Provider_Device_Type;
+   procedure Notify_Alive(Device: in Service_Provider_Device_Type;
 			  Other_Headers: in Message_Header_Array) is
       Required_Part: Unbounded_String;
    begin
@@ -123,11 +122,10 @@ package body SSDP.Service_Provider is
 	   Device.Expires & To_US(EOL);
       end if;
 
-      Send_Message(Device_Type(Device),
-		   Create_Message(To_String(Required_Part), Other_Headers));
+      Send_Message(Create_Message(To_String(Required_Part), Other_Headers));
    end Notify_Alive;
 
-   procedure Notify_Bye_Bye(Device: in out Service_Provider_Device_Type) is
+   procedure Notify_Bye_Bye(Device: in Service_Provider_Device_Type) is
       Start_Line: constant String := Notify_Line & EOL;
    begin
       if Device.Service_Type = "" then raise Header_Malformed
@@ -139,8 +137,7 @@ package body SSDP.Service_Provider is
 	with "Header «USN» (Universal Service Type) is missing";
       end if;
 
-      Send_Message(Device_Type(Device),
-		   Start_Line & "NT: " & To_String(Device.Service_Type) & EOL &
+      Send_Message(Start_Line & "NT: " & To_String(Device.Service_Type) & EOL &
 		     "USN: " & To_String(Device.Universal_Serial_Number) & EOL &
 		     "NTS: ssdp:byebye" & EOL & EOL);
    end Notify_Bye_Bye;
