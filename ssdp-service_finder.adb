@@ -130,8 +130,7 @@ package body SSDP.Service_Finder is
 		  First := Lines(I)'First + 4;
 		  Last := Lines(I)'Last;
 		  Device.Universal_Serial_Number :=
-		    To_Unbounded_String(Trim(Lines(I)(First..Last),
-					     Both));
+		    To_Unbounded_String(Trim(Lines(I)(First..Last), Both));
 		  goto Continue;
 	       end if;
 
@@ -142,8 +141,7 @@ package body SSDP.Service_Finder is
 		  First := Lines(I)'First + 3;
 		  Last := Lines(I)'Last;
 		  Device.Service_Type :=
-		    To_Unbounded_String(Trim(Lines(I)(First..Last),
-					     both));
+		    To_Unbounded_String(Trim(Lines(I)(First..Last), Both));
 		  goto Continue;
 	       end if;
 
@@ -169,13 +167,48 @@ package body SSDP.Service_Finder is
 	       declare
 		  Last: Natural := Lines(NTS_Line).all'Last;
 		  First: Natural := Lines(NTS_Line).all'First + 5;
-		  NTS: String := Trim(Lines(NTS_Line)(First..Last),
-				      Side => Both);
+		  NTS: String := Trim(Lines(NTS_Line)(First..Last), Both);
+
+		  procedure Update(USN, NT: in Unbounded_String) is
+		  begin
+		     for I in 1..Services.Length loop
+			if Services.Element(I).Service_Type = NT and
+			  Services.Element(I).Universal_Serial_Number = USN then
+			   Pl_Debug("Update device: " & To_String(USN) & ' ' &
+				      To_String(NT));
+			   return;
+			end if;
+		     end loop;
+
+		     Pl_Debug("Adding device: " & To_String(USN) & ' ' &
+				To_String(NT));
+		     Services.Append((NT, USN, To_US(""), To_US("")));
+		  end Update;
+
+		  procedure Bye_Bye(USN, NT: in Unbounded_String) is
+		  begin
+		     for I in 1..Services.Length loop
+			if Services.Element(I).Service_Type = NT and
+			  Services.Element(I).Universal_Serial_Number = USN then
+			   Pl_Debug("Remove device: " & To_String(USN) & ' ' &
+				      To_String(NT));
+			   Services.Delete(I);
+			   return;
+			end if;
+		     end loop;
+
+		     Pl_Debug("Untracked device: " & To_String(USN) & ' ' &
+				To_String(NT));
+		  end Bye_Bye;
 	       begin
 		  if NTS = "ssdp:byebye" then
 		     Pl_Debug("It's a byebye :¯(");
+		     Bye_Bye(Device.Universal_Serial_Number,
+			    Device.Service_Type);
 		  elsif NTS = "ssdp:alive" then
 		     Pl_Debug("It's an alive :)");
+		     Update(Device.Universal_Serial_Number,
+			    Device.Service_Type);
 		  else raise SSDP_Message_Malformed
 		    with "Unknown NTS field: " & NTS;
 		  end if;
