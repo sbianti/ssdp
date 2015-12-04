@@ -10,14 +10,14 @@ package SSDP.Service_Provider is
 				Cache_Control, Expires: String) -- dito
 			     return Service_Provider_Device_Type;
 
-   procedure M_Search_Response(Device: in out Service_Provider_Device_Type;
+   procedure M_Search_Response(Device: in Service_Provider_Device_Type;
 			       USN_Requester: in String;
 			       Other_Headers: in Message_Header_Array);
 
-   procedure Notify_Alive(Device: in out Service_Provider_Device_Type;
+   procedure Notify_Alive(Device: in Service_Provider_Device_Type;
 			  Other_Headers: in Message_Header_Array);
 
-   procedure Notify_Bye_Bye(Device: in out Service_Provider_Device_Type);
+   procedure Notify_Bye_Bye(Device: in Service_Provider_Device_Type);
 
    procedure Start_Listening;
 

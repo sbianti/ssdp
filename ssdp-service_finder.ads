@@ -21,7 +21,7 @@ package SSDP.Service_Finder is
 
    function Get_Service_Type(Device: in Finder_Device_Type) return String;
 
-   procedure M_Search(Device: in out Finder_Device_Type;
+   procedure M_Search(Device: in Finder_Device_Type;
 		      Other_Header: in Message_Header_Array);
 
    procedure Start_Listening;

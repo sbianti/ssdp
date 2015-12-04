@@ -91,7 +91,7 @@ package body SSDP.Utils is
       -- UP but still NOT listening
    end Activate_Multicast_Connection;
 
-   procedure Send_Message(Device: in out Device_Type; Message: in String) is
+   procedure Send_Message(Message: in String) is
    begin
       if Global_Multicast_Connection.Is_Down then
 	 Activate_Multicast_Connection;

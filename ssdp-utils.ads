@@ -43,7 +43,7 @@ private package SSDP.Utils is
    function Create_Message(Static_Part: in String;
 			   Headers: in Message_Header_Array) return String;
 
-   procedure Send_Message(Device: in out Device_Type; Message: in String);
+   procedure Send_Message(Message: in String);
 
    procedure Activate_Multicast_Connection;
 

@@ -50,7 +50,7 @@ package body SSDP.Service_Finder is
       return To_String(Device.Service_Type);
    end Get_Service_Type;
 
-   procedure M_Search(Device: in out Finder_Device_Type;
+   procedure M_Search(Device: in Finder_Device_Type;
 		      Other_Header: in Message_Header_Array) is
       Start_Line: constant String := M_Search_Star_Line & EOL;
    begin
@@ -62,8 +62,7 @@ package body SSDP.Service_Finder is
 	with "Header «S» (Universal Service Type) is missing";
       end if;
 
-      Send_Message(Device_Type(Device),
-		   Create_Message(Start_Line & "ST: " &
+      Send_Message(Create_Message(Start_Line & "ST: " &
 				    To_String(Device.Service_Type) & EOL &
 				    "S: " &
 				    To_String(Device.Universal_Serial_Number) &
