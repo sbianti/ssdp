@@ -40,8 +40,8 @@ package SSDP is
    type Command_Name_Type is (Discover, Sleep, Alive, Bye_Bye);
 
    -- Restricted command_name types:
-   type Finder_Command_Name_Type is new Command_Name_Type range Discover..Sleep;
-   type Provider_Command_Name_Type is new Command_Name_Type range Sleep..Bye_Bye;
+   type Client_Command_Name_Type is new Command_Name_Type range Discover..Sleep;
+   type Service_Command_Name_Type is new Command_Name_Type range Sleep..Bye_Bye;
 
    Header_Malformed,
    Not_An_SSDP_Message,

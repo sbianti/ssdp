@@ -89,7 +89,7 @@ procedure Test_Client is
 	      "(previous value is the default)"));
 
    Help_Header: constant String :=
-     "   Test program for service finder API" & EOL & EOL &
+     "   Test program for SSDP clients API" & EOL & EOL &
      "   usage: " & Command_Name &
      " [--batch «batch_line»][--service_type=oven:micro_wave]" & EOL & EOL &
      "     batch_line ≡ command [command ]*" & EOL &
@@ -117,7 +117,7 @@ procedure Test_Client is
 	 Value_Form => Example_Value(Service_Type))
      );
 
-   package Scheduling is new SSDP.Command_Scheduling(Finder_Command_Name_Type);
+   package Scheduling is new SSDP.Command_Scheduling(Client_Command_Name_Type);
    use Scheduling;
 
    Schedule: Schedule_Type;

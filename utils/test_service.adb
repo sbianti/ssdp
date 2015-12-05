@@ -109,7 +109,7 @@ procedure Test_Service is
       To_US("One, or many bye-byes are sent when exiting normaly"));
 
    Help_Header: constant String :=
-     "   Test program for service provider API" & EOL & EOL &
+     "   Test program for SSDP services API" & EOL & EOL &
      "   usage: " & Command_Name &
      " [--batch «batch_line»][--service_type=oven:micro_wave]" &
      "[--bye_bye_on_exit]" & EOL & EOL &
@@ -144,7 +144,7 @@ procedure Test_Service is
 	 Value_Form => Example_Value(Bye_Bye_On_Exit))
      );
 
-   package Scheduling is new Command_Scheduling(Provider_Command_Name_Type);
+   package Scheduling is new Command_Scheduling(Service_Command_Name_Type);
    use Scheduling;
 
    Schedule: Schedule_Type;

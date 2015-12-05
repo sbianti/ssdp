@@ -36,10 +36,10 @@ package body SSDP.Clients is
       Expiration: Unbounded_String; -- Dito here.
    end record;
 
-   -- Only one service_finder should usually exist, however, we choose to allow
-   --  the existence of several ones.
-   -- This vector contains the list of the discovered devices and permit to
-   --  manage the received events for every declared service_finder.
+   -- Only one SSDP client should usually exist, however, we choose to allow
+   --  the existence of several ones creating a dedicated type SSDP_Client.
+   -- This vector contains the list of the discovered services and permit to
+   --  manage in one place the received events for every declared SSDP_Client.
    subtype Service_Count_Type is Count_Type range 1..100;
    package Service_Vectors is new Vectors(Service_Count_Type,
 					  Service_Device_Type);
