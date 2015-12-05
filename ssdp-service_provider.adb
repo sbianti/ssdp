@@ -323,7 +323,7 @@ package body SSDP.Service_Provider is
 	       else
 		  USN_M_Search := To_US("");
 	       end if;
-	       Pl_Debug("USN_M_SEARCH: " & To_String(USN_M_Search));
+
 	       for I in Devices'Range loop
 		  Pl_Debug("Envoie du device:" &
 			     To_String(Devices(I).Universal_Serial_Number) &
