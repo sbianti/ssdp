@@ -28,6 +28,11 @@ with SSDP.Utils;
 package body SSDP.Services is
    use SSDP.Utils, Ada.Containers;
 
+   function "=" (Left, Right: in SSDP_Service) return Boolean is
+   begin
+      return Device_Type(Left) = Device_Type(Right);
+   end "=";
+
    -- Each service initialized is kept in this list. This allows to kown
    -- if a discover message should be responded knowing its service_type.
    subtype Device_Count_Type is Count_Type range 1..100;
@@ -185,24 +190,9 @@ package body SSDP.Services is
       Start_Line: constant String := Notify_Line & EOL;
 
       procedure Remove_Service(Service: in SSDP_Service) is
-
-	 Count: Natural := 0;
-
-	 function Same_IDs(A, B: in SSDP_Service) return Boolean is
-	 begin
-	    if A.Universal_Serial_Number = B.Universal_Serial_Number and
-	      A.Service_Type = B.Service_Type then
-	       return True;
-	    else
-	       return False;
-	    end if;
-	 end Same_IDs;
-
-	 pragma Inline_Always(Same_IDs);
-
       begin
 	 for I in 1..Device_Vector.Length loop
-	    if Same_IDs(Device_Vector.Element(I), Service) then
+	    if Device_Vector.Element(I) = Service then
 	       Pl_Debug("Removing service:" & To_String
 			  (Device_Vector.Element(I).Universal_Serial_Number) &
 			  " / " &

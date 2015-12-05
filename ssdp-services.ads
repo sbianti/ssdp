@@ -26,6 +26,8 @@ package SSDP.Services is
 
    type SSDP_Service is new Device_Type with private;
 
+   function "=" (Left, Right: in SSDP_Service) return Boolean;
+
    function Initialize_Device(Service_Type, Universal_Serial_Number,
 				Location, AL, -- only one is required
 				Cache_Control, Expires: String) -- dito

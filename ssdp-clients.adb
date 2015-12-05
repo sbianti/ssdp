@@ -39,6 +39,12 @@ package body SSDP.Clients is
       -- Dito here: prefered result from Cache-Control and Expires
       Expiration: Time;
    end record;
+   function "=" (Left, Right: in Service_Device_Type) return Boolean;
+
+   function "=" (Left, Right: in Service_Device_Type) return Boolean is
+   begin
+      return Device_Type(Left) = Device_Type(Right);
+   end "=";
 
    -- Only one SSDP client should usually exist, however, we choose to allow
    --  the existence of several ones creating a dedicated type SSDP_Client.
@@ -169,8 +175,7 @@ package body SSDP.Clients is
 	 USN: constant Unbounded_String := Service.Universal_Serial_Number;
       begin
 	 for I in 1..Services.Length loop
-	    if Services.Element(I).Service_Type = NT and
-	      Services.Element(I).Universal_Serial_Number = USN then
+	    if Services.Element(I) = Service then
 	       Pl_Debug("Update device: " & To_String(USN) & ' ' &
 			  To_String(NT));
 	       Services.Replace_Element(I, Service);
@@ -252,8 +257,7 @@ package body SSDP.Clients is
 		     NT: constant Unbounded_String := Service.Service_Type;
 		  begin
 		     for I in 1..Services.Length loop
-			if Services.Element(I).Service_Type = NT and
-			  Services.Element(I).Universal_Serial_Number = USN then
+			if Services.Element(I) = Service then
 			   Pl_Debug("Removing service: " & To_String(USN) &
 				      ' ' & To_String(NT));
 			   Services.Delete(I);
