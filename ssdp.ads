@@ -26,7 +26,7 @@ package SSDP is
    subtype Location_Array is US_Array;
    subtype Message_Header_Array is US_Array;
 
-   type Device_Type is tagged private;
+   type Device_Type is abstract tagged private;
 
    type Job_Procedure_Access is access procedure;
 
