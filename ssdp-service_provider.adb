@@ -69,21 +69,21 @@ package body SSDP.Service_Provider is
       end;
    end Matching_Devices;
 
-   procedure Remove_Devices(USN: in Unbounded_String) is
+   procedure Remove_Service(Service: in SSDP_Service) is
       -- Removes all devices with this USN (could be many)
       Count: Natural := 0;
    begin
       for I in 1..Device_Vector.Length loop
-	 if Device_Vector.Element(I).Universal_Serial_Number = USN then
-	    Pl_Debug("Delete device:" & To_String
-		       (Device_Vector.Element(I).Universal_Serial_Number)
+	 if Device_Vector.Element(I) = Service then
+	    Pl_Debug("Removing service:" & To_String
+		       (Device_Vector.Element(I).Universal_Serial_Number) &
+		       " / " & To_String(Device_Vector.Element(I).Service_Type)
 		    );
 	    Device_Vector.Delete(I);
+	    return;
 	 end if;
       end loop;
-
-      Pl_Debug("removed" & Count'Img & " device(s) with USN " & To_String(USN));
-   end Remove_Devices;
+   end Remove_Service;
 
    function Initialize_Device(Service_Type, Universal_Serial_Number,
 				Location, AL, -- only one is required
@@ -242,7 +242,7 @@ package body SSDP.Service_Provider is
 	   with "Header «USN» (Universal Service Type) is missing";
       end if;
 
-      Remove_Devices(Device.Universal_Serial_Number);
+      Remove_Service(Device);
 
       Send_Message(Start_Line & "NT: " & To_String(Device.Service_Type) & EOL &
 		     "USN: " & To_String(Device.Universal_Serial_Number) & EOL &
