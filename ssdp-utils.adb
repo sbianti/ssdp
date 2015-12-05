@@ -99,7 +99,7 @@ package body SSDP.Utils is
       end;
    end Create_Message;
 
-   procedure Activate_Multicast_Connection is
+   procedure Set_Networking is
       GMC: Multicast_Connection renames Global_Multicast_Connection;
    begin
       if not GMC.Is_Down then
@@ -121,12 +121,12 @@ package body SSDP.Utils is
       GMC.Is_Down := False;
 
       -- UP but still NOT listening
-   end Activate_Multicast_Connection;
+   end Set_Networking;
 
    procedure Send_Message(Message: in String) is
    begin
       if Global_Multicast_Connection.Is_Down then
-	 Activate_Multicast_Connection;
+	 Set_Networking;
       end if;
 
       String'Write(Global_Multicast_Connection.Channel, Message);

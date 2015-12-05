@@ -66,7 +66,7 @@ private package SSDP.Utils is
 
    procedure Send_Message(Message: in String);
 
-   procedure Activate_Multicast_Connection;
+   procedure Set_Networking;
 
    function Parse_Lines(Message: in String) return Line_Array;
 

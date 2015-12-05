@@ -53,7 +53,7 @@ package body SSDP.Service_Finder is
 	   with "service_type AND universal_serial_number should be not null";
       end if;
 
-      Activate_Multicast_Connection;
+      Set_Networking;
 
       Device.Service_Type := To_US(Service_Type);
       Device.Universal_Serial_Number := To_US(Universal_Serial_Number);

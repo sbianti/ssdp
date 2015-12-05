@@ -136,7 +136,7 @@ package body SSDP.Service_Provider is
 	   " and ST=" & Service_Type & " already exists";
       end if;
 
-      Activate_Multicast_Connection;
+      Set_Networking;
 
       Device := (To_US(Service_Type), To_US(Universal_Serial_Number),
 		 To_US(Location), To_US(AL),
