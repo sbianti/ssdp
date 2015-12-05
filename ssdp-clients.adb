@@ -31,8 +31,9 @@ package body SSDP.Clients is
    use SSDP.Utils, Gnat.Sockets, Ada.Containers;
 
    type Service_Device_Type is new Device_Type with record
-      Location,
-      Expires: Unbounded_String;
+      Location, -- only one here, we only need the preferred value between
+		-- Location and AL. See rationnal in Parse_Response
+      Expiration: Unbounded_String; -- Dito here.
    end record;
 
    -- Only one service_finder should usually exist, however, we choose to allow
@@ -111,6 +112,22 @@ package body SSDP.Clients is
       Last: Stream_Element_Offset;
       Addr: Sock_Addr_Type;
 
+      procedure Update(USN, NT: in Unbounded_String) is
+      begin
+	 for I in 1..Services.Length loop
+	    if Services.Element(I).Service_Type = NT and
+	      Services.Element(I).Universal_Serial_Number = USN then
+	       Pl_Debug("Update device: " & To_String(USN) & ' ' &
+			  To_String(NT));
+	       return;
+	    end if;
+	 end loop;
+
+	 Pl_Debug("Adding device: " & To_String(USN) & ' ' & To_String(NT));
+
+	 Services.Append((NT, USN, To_US(""), To_US("")));
+      end Update;
+
       procedure Parse_Message(Message: in String) is
 	 use Ada.Characters.Handling, Ada.Strings.Fixed;
 
@@ -161,22 +178,6 @@ package body SSDP.Clients is
 		  Last: Natural := Lines(NTS_Line).all'Last;
 		  First: Natural := Lines(NTS_Line).all'First + 5;
 		  NTS: String := Trim(Lines(NTS_Line)(First..Last), Both);
-
-		  procedure Update(USN, NT: in Unbounded_String) is
-		  begin
-		     for I in 1..Services.Length loop
-			if Services.Element(I).Service_Type = NT and
-			  Services.Element(I).Universal_Serial_Number = USN then
-			   Pl_Debug("Update device: " & To_String(USN) & ' ' &
-				      To_String(NT));
-			   return;
-			end if;
-		     end loop;
-
-		     Pl_Debug("Adding device: " & To_String(USN) & ' ' &
-				To_String(NT));
-		     Services.Append((NT, USN, To_US(""), To_US("")));
-		  end Update;
 
 		  procedure Bye_Bye(USN, NT: in Unbounded_String) is
 		  begin
@@ -230,10 +231,9 @@ package body SSDP.Clients is
 	 end if;
 
 	 Posn := Index(To_Upper(Lines(1).all), Status_Line);
-	 if Posn > 1 then raise SSDP_Message_Malformed
-	   with "Reply to M-SEARCH line doesn't begin at character 0";
-	 elsif Posn = 1 then
-	    Pl_Debug("Reply to M-SEARCH received");
+	 if Posn >= 1 then
+	    Pl_Debug("Multicast reply to M-SEARCH received: should not " &
+		       "happend here. Message Dropped.");
 	    return;
 	 end if;
 
@@ -249,14 +249,129 @@ package body SSDP.Clients is
 	 Msg: Stream_Element_Array(1..500);
 	 Last: Stream_Element_Offset;
 	 Addr: Sock_Addr_Type;
+
+	 procedure Parse_Response(Message: in String) is
+	    use Ada.Characters.Handling, Ada.Strings.Fixed;
+
+	    Lines: Line_Array := Parse_Lines(Message);
+	    Posn: Natural;
+
+	    procedure Get_M_Search_Response(Lines: in Line_Array) is
+	       use Ada.Strings;
+
+	       Service: Service_Device_Type;
+	       S_Line, Cache_Control_Line, Expires_Line,
+		 Location_Line, AL_Line: Natural := 0;
+	       Posn, First, Last: Natural;
+	    begin
+	       for I in Lines'Range loop
+		  Posn := Index(To_Upper(Lines(I).all), "USN:");
+		  if Posn = 1 then
+		     First := Lines(I)'First + 4;
+		     Last := Lines(I)'Last;
+		     Service.Universal_Serial_Number :=
+		       To_Unbounded_String(Trim(Lines(I)(First..Last), Both));
+		     goto Continue;
+		  end if;
+
+		  Posn := Index(To_Upper(Lines(I).all), "ST:");
+		  if Posn = 1 then
+		     First := Lines(I)'First + 3;
+		     Last := Lines(I)'Last;
+		     Service.Service_Type :=
+		       To_Unbounded_String(Trim(Lines(I)(First..Last), Both));
+		     goto Continue;
+		  end if;
+
+		  Posn := Index(To_Upper(Lines(I).all), "S:");
+		  if Posn = 1 then
+		     S_Line := I;
+		     goto Continue;
+		  end if;
+
+		  Posn := Index(To_Upper(Lines(I).all), "CACHE-CONTROL:");
+		  if Posn = 1 then
+		     Cache_Control_Line := I;
+		     goto Continue;
+		  end if;
+
+		  Posn := Index(To_Upper(Lines(I).all), "EXPIRES:");
+		  if Posn = 1 then
+		     Expires_Line := I;
+		     goto Continue;
+		  end if;
+
+		  Posn := Index(To_Upper(Lines(I).all), "AL:");
+		  if Posn = 1 then
+		     AL_Line := I;
+		     goto Continue;
+		  end if;
+
+		  Posn := Index(To_Upper(Lines(I).all), "LOCATION:");
+		  if Posn = 1 then
+		     Location_Line := I;
+		     goto Continue;
+		  end if;
+
+		  Pl_Debug("Extra info: [" & Lines(I).all & "]");
+	      <<Continue>>
+	       end loop;
+
+	       if Service.Universal_Serial_Number = Null_Unbounded_String then
+		  raise SSDP_Message_Malformed
+		    with "USN missing in this M-Search response";
+	       elsif Service.Service_Type = Null_Unbounded_String then
+		  raise SSDP_Message_Malformed
+		    with "ST missing in this M-Search response";
+	       elsif Cache_Control_Line = 0 and Expires_Line = 0 then
+		  raise SSDP_Message_Malformed
+		    with "Both Cache_Control and Expires field are missing";
+	       end if;
+
+	       -- Cache-Control takes precedence over Expires:
+	       if Cache_Control_Line /= 0 then
+		  Service.Expiration := To_US(Lines(Cache_Control_Line).all);
+	       else
+		  Service.Expiration := To_US(Lines(Expires_Line).all);
+	       end if;
+
+	       -- Location takes precedence over AL. But both are optional:
+	       if Location_Line /= 0 then
+		  Service.Location := To_US(Lines(Location_Line).all);
+	       elsif AL_Line /= 0 then
+		  Service.Location := To_US(Lines(AL_Line).all);
+	       end if;
+
+	       Update(Service.Universal_Serial_Number, Service.Service_Type);
+	    end Get_M_Search_Response;
+	 begin
+	    Posn := Index(To_Upper(Lines(1).all), Status_Line);
+	    if Posn > 1 then raise SSDP_Message_Malformed
+	      with "Reply to M-SEARCH line doesn't begin at character 0";
+	    elsif Posn = 1 then
+	       Pl_Debug("Reply to M-SEARCH received");
+	       Get_M_Search_Response(Lines(2..Lines'Last));
+	       return;
+	    end if;
+
+	    Pl_Debug("Unmanaged message with header:");
+	    Pl_Debug(Lines(1).all);
+	 end Parse_Response;
       begin
 	 loop
-	    Receive_Socket(Global_Network_Settings.Socket(Unicast),
-			   Msg, Last, Addr);
-	    Pl_Debug("____________________________________________________");
-	    Pl_Debug("From " & Image(Addr) & " [Unicast]");
-	    Parse_Message(To_String(Msg(1..Last)));
-	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
+	    begin
+	       Receive_Socket(Global_Network_Settings.Socket(Unicast),
+			      Msg, Last, Addr);
+	       Pl_Debug("____________________________________________________");
+	       Pl_Debug("From " & Image(Addr) & " [Unicast]");
+	       Parse_Response(To_String(Msg(1..Last)));
+	       Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
+	    exception
+	       when E: SSDP_Message_Malformed =>
+		  Pl_Debug("Message malformed:" & Exception_Message(E));
+	       when E: others =>
+		  Pl_Error(Exception_Message(E));
+	    end;
 	 end loop;
       end Unicast_Listener;
    begin
