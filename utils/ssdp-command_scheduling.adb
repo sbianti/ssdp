@@ -46,7 +46,7 @@ package body SSDP.Command_Scheduling is
 	 return Commands_String & LF & (Current - 1) * ' ' & "↑" & LF &
 	   "see --help option" & LF;
       end Command_Debug;
-      pragma Inline_Always(Command_Debug);
+      pragma Inline(Command_Debug);
 
       package Command_Name_IO is
 	 new Ada.Text_IO.Enumeration_IO(Restricted_Command_Name_Type);
