@@ -100,36 +100,36 @@ package body SSDP.Utils is
    end Create_Message;
 
    procedure Set_Networking is
-      GMC: Multicast_Connection renames Global_Multicast_Connection;
+      GNS: Network_Settings renames Global_Network_Settings;
    begin
-      if not GMC.Is_Down then
+      if not GNS.Is_Down then
 	 return;
       end if;
 
       -- is DOWN and NOT listening
-      GMC.Address.Addr := Inet_Addr(Multicast_Address);
-      GMC.Address.Port := Multicast_Port;
+      GNS.Address.Addr := Inet_Addr(Multicast_Address);
+      GNS.Address.Port := Multicast_Port;
 
-      Create_Socket(GMC.Socket, Family_Inet, Socket_Datagram);
-      Set_Socket_Option(GMC.Socket, Socket_Level, (Reuse_Address, True));
-      Set_Socket_Option(GMC.Socket, Ip_Protocol_For_Ip_Level,
-			(Add_Membership, GMC.Address.Addr, Any_Inet_Addr));
+      Create_Socket(GNS.Socket, Family_Inet, Socket_Datagram);
+      Set_Socket_Option(GNS.Socket, Socket_Level, (Reuse_Address, True));
+      Set_Socket_Option(GNS.Socket, Ip_Protocol_For_Ip_Level,
+			(Add_Membership, GNS.Address.Addr, Any_Inet_Addr));
 
-      Bind_Socket(GMC.Socket, GMC.Address);
+      Bind_Socket(GNS.Socket, GNS.Address);
 
-      GMC.Channel := Stream(GMC.Socket, GMC.Address);
-      GMC.Is_Down := False;
+      GNS.Channel := Stream(GNS.Socket, GNS.Address);
+      GNS.Is_Down := False;
 
       -- UP but still NOT listening
    end Set_Networking;
 
    procedure Send_Message(Message: in String) is
    begin
-      if Global_Multicast_Connection.Is_Down then
+      if Global_Network_Settings.Is_Down then
 	 Set_Networking;
       end if;
 
-      String'Write(Global_Multicast_Connection.Channel, Message);
+      String'Write(Global_Network_Settings.Channel, Message);
    end Send_Message;
 
    function Parse_Lines(Message: in String) return Line_Array is
@@ -176,24 +176,24 @@ package body SSDP.Utils is
 
    procedure Start_Listening(Job: in Job_Procedure_Access) is
    begin
-      if not Global_Multicast_Connection.Is_Listening then
+      if not Global_Network_Settings.Is_Listening then
 	 Listener.Start(Job);
-	 Global_Multicast_Connection.Is_Listening := True;
+	 Global_Network_Settings.Is_Listening := True;
       end if;
    end Start_Listening;
 
    procedure Stop_Listening is
-      Address: Sock_Addr_Type renames Global_Multicast_Connection.Address;
+      Address: Sock_Addr_Type renames Global_Network_Settings.Address;
    begin
       abort Listener;
 
-      if Global_Multicast_Connection.Is_Listening then
-	 Set_Socket_Option(Global_Multicast_Connection.Socket,
+      if Global_Network_Settings.Is_Listening then
+	 Set_Socket_Option(Global_Network_Settings.Socket,
 			   Ip_Protocol_For_Ip_Level,
 			   (Drop_Membership, Address.Addr, Any_Inet_Addr));
-	 Close_Socket(Global_Multicast_Connection.Socket);
-	 Free(Global_Multicast_Connection.Channel);
-	 Global_Multicast_Connection.Is_Listening := False;
+	 Close_Socket(Global_Network_Settings.Socket);
+	 Free(Global_Network_Settings.Channel);
+	 Global_Network_Settings.Is_Listening := False;
       end if;
    end Stop_Listening;
 

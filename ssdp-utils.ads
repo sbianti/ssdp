@@ -34,7 +34,7 @@ private package SSDP.Utils is
    Multicast_Address: constant String := "239.255.255.250";
    Multicast_Port: constant Gnat.Sockets.Port_Type := 1900;
 
-   type Multicast_Connection is record
+   type Network_Settings is record
       Is_Listening: Boolean := False;
       Is_Down: Boolean := True;
       Socket: Socket_Type;
@@ -42,7 +42,7 @@ private package SSDP.Utils is
       Channel: Stream_Access;
    end record;
 
-   Global_Multicast_Connection: Multicast_Connection;
+   Global_Network_Settings: Network_Settings;
 
    -- Useful type for message parsing in job_procedure:
    type Line_Array is array (Natural range <>) of access String;
