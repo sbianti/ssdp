@@ -252,6 +252,22 @@ package body SSDP.Service_Finder is
 	 when Ex: SSDP_Message_Malformed =>
 	    Pl_Debug(Exception_Name(Ex) & ": " & Exception_Message(Ex));
       end Parse_Message;
+
+      task Unicast_Listener;
+      task body Unicast_Listener is
+	 Msg: Stream_Element_Array(1..500);
+	 Last: Stream_Element_Offset;
+	 Addr: Sock_Addr_Type;
+      begin
+	 loop
+	    Receive_Socket(Global_Network_Settings.Socket(Unicast),
+			   Msg, Last, Addr);
+	    Pl_Debug("____________________________________________________");
+	    Pl_Debug("From " & Image(Addr) & " [Unicast]");
+	    Parse_Message(To_String(Msg(1..Last)));
+	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
+	 end loop;
+      end Unicast_Listener;
    begin
       Set_Socket_Option(Global_Network_Settings.Socket(Multicast),
 			Ip_Protocol_For_Ip_Level, (Multicast_Loop, True));
@@ -261,7 +277,7 @@ package body SSDP.Service_Finder is
 	    Receive_Socket(Global_Network_Settings.Socket(Multicast),
 			   Msg, Last, Addr);
 	    Pl_Debug("____________________________________________________");
-	    Pl_Debug("From " & Image(Addr));
+	    Pl_Debug("From " & Image(Addr) & " [Multicast]");
 	    Parse_Message(To_String(Msg(1..Last)));
 	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
 	 exception
