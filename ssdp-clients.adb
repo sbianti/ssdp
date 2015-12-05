@@ -112,20 +112,23 @@ package body SSDP.Clients is
       Last: Stream_Element_Offset;
       Addr: Sock_Addr_Type;
 
-      procedure Update(USN, NT: in Unbounded_String) is
+      procedure Update(Service: in Service_Device_Type) is
+	 NT: constant Unbounded_String := Service.Service_Type;
+	 USN: constant Unbounded_String := Service.Universal_Serial_Number;
       begin
 	 for I in 1..Services.Length loop
 	    if Services.Element(I).Service_Type = NT and
 	      Services.Element(I).Universal_Serial_Number = USN then
 	       Pl_Debug("Update device: " & To_String(USN) & ' ' &
 			  To_String(NT));
+	       Services.Replace_Element(I, Service);
 	       return;
 	    end if;
 	 end loop;
 
 	 Pl_Debug("Adding device: " & To_String(USN) & ' ' & To_String(NT));
 
-	 Services.Append((NT, USN, To_US(""), To_US("")));
+	 Services.Append(Service);
       end Update;
 
       procedure Parse_Message(Message: in String) is
@@ -134,7 +137,7 @@ package body SSDP.Clients is
 	 procedure Get_Notify_Info(Lines: in Line_Array) is
 	    use Ada.Strings;
 
-	    Device: Device_Type;
+	    Service: Service_Device_Type;
 	    NTS_Line: Natural := 0;
 	    Posn, First, Last: Natural;
 	 begin
@@ -143,7 +146,7 @@ package body SSDP.Clients is
 	       if Posn = 1 then
 		  First := Lines(I)'First + 4;
 		  Last := Lines(I)'Last;
-		  Device.Universal_Serial_Number :=
+		  Service.Universal_Serial_Number :=
 		    To_Unbounded_String(Trim(Lines(I)(First..Last), Both));
 		  goto Continue;
 	       end if;
@@ -152,7 +155,7 @@ package body SSDP.Clients is
 	       if Posn = 1 then
 		  First := Lines(I)'First + 3;
 		  Last := Lines(I)'Last;
-		  Device.Service_Type :=
+		  Service.Service_Type :=
 		    To_Unbounded_String(Trim(Lines(I)(First..Last), Both));
 		  goto Continue;
 	       end if;
@@ -169,9 +172,9 @@ package body SSDP.Clients is
 
 	    if NTS_Line = 0 then raise SSDP_Message_Malformed
 	      with "No NTS field found";
-	    elsif Device.Universal_Serial_Number = "" then
+	    elsif Service.Universal_Serial_Number = "" then
 	       raise SSDP_Message_Malformed with "No USN field found";
-	    elsif Device.Service_Type = "" then
+	    elsif Service.Service_Type = "" then
 	       raise SSDP_Message_Malformed with "No ST field found";
 	    else
 	       declare
@@ -179,30 +182,31 @@ package body SSDP.Clients is
 		  First: Natural := Lines(NTS_Line).all'First + 5;
 		  NTS: String := Trim(Lines(NTS_Line)(First..Last), Both);
 
-		  procedure Bye_Bye(USN, NT: in Unbounded_String) is
+		  procedure Bye_Bye(Service: in Service_Device_Type) is
+		     USN: constant Unbounded_String :=
+		       Service.Universal_Serial_Number;
+		     NT: constant Unbounded_String := Service.Service_Type;
 		  begin
 		     for I in 1..Services.Length loop
 			if Services.Element(I).Service_Type = NT and
 			  Services.Element(I).Universal_Serial_Number = USN then
-			   Pl_Debug("Removing device: " & To_String(USN) & ' ' &
+			   Pl_Debug("Removing service: " & To_String(USN) & ' ' &
 				      To_String(NT));
 			   Services.Delete(I);
 			   return;
 			end if;
 		     end loop;
 
-		     Pl_Debug("Untracked device: " & To_String(USN) & ' ' &
+		     Pl_Debug("Untracked service: " & To_String(USN) & ' ' &
 				To_String(NT));
 		  end Bye_Bye;
 	       begin
 		  if NTS = "ssdp:byebye" then
 		     Pl_Debug("It's a byebye :¯(");
-		     Bye_Bye(Device.Universal_Serial_Number,
-			     Device.Service_Type);
+		     Bye_Bye(Service);
 		  elsif NTS = "ssdp:alive" then
 		     Pl_Debug("It's an alive :)");
-		     Update(Device.Universal_Serial_Number,
-			    Device.Service_Type);
+		     Update(Service);
 		  else raise SSDP_Message_Malformed
 		    with "Unknown NTS field: " & NTS;
 		  end if;
@@ -342,7 +346,7 @@ package body SSDP.Clients is
 		  Service.Location := To_US(Lines(AL_Line).all);
 	       end if;
 
-	       Update(Service.Universal_Serial_Number, Service.Service_Type);
+	       Update(Service);
 	    end Get_M_Search_Response;
 	 begin
 	    Posn := Index(To_Upper(Lines(1).all), Status_Line);
