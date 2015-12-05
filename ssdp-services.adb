@@ -306,7 +306,7 @@ package body SSDP.Services is
 	    First := Lines(ST_Line)'First + 3;
 	    Last := Lines(ST_Line)'Last;
 
-	    Pl_Debug("Type: " & Lines(ST_Line)(First..Last));
+	    Pl_Debug("Type: " & Trim(Lines(ST_Line)(First..Last), Left));
 
 	    declare
 	       Devices: Device_Array_Type :=
