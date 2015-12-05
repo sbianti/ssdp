@@ -112,6 +112,43 @@ package body SSDP.Clients is
       Last: Stream_Element_Offset;
       Addr: Sock_Addr_Type;
 
+      type Expiration_Type is (Cache_Control, Expires);
+
+      function Get_Expiration(Expiration_Header: in Expiration_Type;
+			      Str: in String) return Unbounded_String is
+	 use Ada.Strings.Fixed;
+
+	 Posn: Natural;
+      begin
+	 case Expiration_Header is
+	    when Cache_Control =>
+	       -- Cache-Control should contain a «max-age = value» somewhere
+	       Posn := Index(Str, "max-age");
+	       if Posn = 0 then raise SSDP_Message_Malformed
+		 with "max-age value is missing in Cache-Control header";
+	       end if;
+
+	       if Posn + 7 = Str'Last then raise SSDP_Message_Malformed
+		 with "max-age header-value has no value";
+	       end if;
+
+	       Posn := Index(Str(Posn + 7..Str'Last), "=");
+	       if Posn = 0 or Posn = Str'Last then raise SSDP_Message_Malformed
+		 with "max-age header-value has no value";
+	       end if;
+
+	       Pl_Debug("max-age =" & Str(Posn + 1..Str'Last));
+
+	       return To_US(Str(Posn + 1..Str'Last));
+
+	    when Expires =>
+	       -- Need to be implemented, see RFC here:
+	       -- http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1
+	       raise SSDP_Message_Malformed
+		 with "Expires field decoding not yet implemented, SORRY :(";
+	 end case;
+      end Get_Expiration;
+
       procedure Update(Service: in Service_Device_Type) is
 	 NT: constant Unbounded_String := Service.Service_Type;
 	 USN: constant Unbounded_String := Service.Universal_Serial_Number;
@@ -138,7 +175,7 @@ package body SSDP.Clients is
 	    use Ada.Strings;
 
 	    Service: Service_Device_Type;
-	    NTS_Line: Natural := 0;
+	    NTS_Line, Cache_Control_Line, Expiration_Line: Natural := 0;
 	    Posn, First, Last: Natural;
 	 begin
 	    for I in Lines'Range loop
@@ -163,6 +200,18 @@ package body SSDP.Clients is
 	       Posn := Index(To_Upper(Lines(I).all), "NTS:");
 	       if Posn = 1 then
 		  NTS_Line := I;
+		  goto Continue;
+	       end if;
+
+	       Posn := Index(To_Upper(Lines(I).all), "CACHE-CONTROL:");
+	       if Posn = 1 then
+		  Cache_Control_Line := I;
+		  goto Continue;
+	       end if;
+
+	       Posn := Index(To_Upper(Lines(I).all), "EXPIRATION:");
+	       if Posn = 1 then
+		  Expiration_Line := I;
 		  goto Continue;
 	       end if;
 
@@ -206,6 +255,18 @@ package body SSDP.Clients is
 		     Bye_Bye(Service);
 		  elsif NTS = "ssdp:alive" then
 		     Pl_Debug("It's an alive :)");
+		     if Cache_Control_Line = 0 and Expiration_Line = 0 then
+			raise SSDP_Message_Malformed
+			  with "Neither Cache-Control nor Expires field " &
+			  "in alive notification";
+		     elsif Cache_Control_Line /= 0 then
+			Service.Expiration :=
+			  Get_Expiration(Cache_Control,
+					 Lines(Cache_Control_Line).all);
+		     else
+			Service.Expiration :=
+			  Get_Expiration(Expires, Lines(Expiration_Line).all);
+		     end if;
 		     Update(Service);
 		  else raise SSDP_Message_Malformed
 		    with "Unknown NTS field: " & NTS;
@@ -337,9 +398,12 @@ package body SSDP.Clients is
 
 	       -- Cache-Control takes precedence over Expires:
 	       if Cache_Control_Line /= 0 then
-		  Service.Expiration := To_US(Lines(Cache_Control_Line).all);
+		  Service.Expiration :=
+		    Get_Expiration(Cache_Control,
+				   Lines(Cache_Control_Line).all);
 	       else
-		  Service.Expiration := To_US(Lines(Expires_Line).all);
+		  Service.Expiration :=
+		    Get_Expiration(Expires, Lines(Expires_Line).all);
 	       end if;
 
 	       -- Location takes precedence over AL. But both are optional:
