@@ -28,58 +28,11 @@ with SSDP.Utils;
 package body SSDP.Services is
    use SSDP.Utils, Ada.Containers;
 
-   -- Each service initialized is kept in this list, this allow to kown
+   -- Each service initialized is kept in this list. This allows to kown
    -- if a discover message should be responded knowing its service_type.
    subtype Device_Count_Type is Count_Type range 1..100;
    package Device_Vectors is new Vectors(Device_Count_Type, SSDP_Service);
    Device_Vector: Device_Vectors.Vector;
-
-   type Device_Array_Type is array (Device_Count_Type range <>) of SSDP_Service;
-
-   function Matching_Devices(Service_Type: in String)
-			    return Device_Array_Type is
-      Count: Device_Count_Type'Base := 0;
-      Devices: Device_Array_Type(1..Device_Vector.Length);
-   begin
-      for I in 1..Device_Vector.Length loop
-	 if Service_Type = "ssdp:all" or else
-	   Device_Vector.Element(I).Service_Type = To_US(Service_Type) then
-	    Count := Count + 1;
-	    Devices(Count) := Device_Vector.Element(I);
-	 end if;
-      end loop;
-
-      return Devices(1..Count);
-   end Matching_Devices;
-
-   procedure Remove_Service(Service: in SSDP_Service) is
-
-      Count: Natural := 0;
-
-      function Same_IDs(A, B: in SSDP_Service) return Boolean is
-      begin
-	 if A.Universal_Serial_Number = B.Universal_Serial_Number and
-	   A.Service_Type = B.Service_Type then
-	    return True;
-	 else
-	    return False;
-	 end if;
-      end Same_IDs;
-
-      pragma Inline_Always(Same_IDs);
-
-   begin
-      for I in 1..Device_Vector.Length loop
-	 if Same_IDs(Device_Vector.Element(I), Service) then
-	    Pl_Debug("Removing service:" & To_String
-		       (Device_Vector.Element(I).Universal_Serial_Number) &
-		       " / " & To_String(Device_Vector.Element(I).Service_Type)
-		    );
-	    Device_Vector.Delete(I);
-	    return;
-	 end if;
-      end loop;
-   end Remove_Service;
 
    function Initialize_Device(Service_Type, Universal_Serial_Number,
 				Location, AL, -- only one is required
@@ -230,6 +183,37 @@ package body SSDP.Services is
 
    procedure Notify_Bye_Bye(Device: in SSDP_Service) is
       Start_Line: constant String := Notify_Line & EOL;
+
+      procedure Remove_Service(Service: in SSDP_Service) is
+
+	 Count: Natural := 0;
+
+	 function Same_IDs(A, B: in SSDP_Service) return Boolean is
+	 begin
+	    if A.Universal_Serial_Number = B.Universal_Serial_Number and
+	      A.Service_Type = B.Service_Type then
+	       return True;
+	    else
+	       return False;
+	    end if;
+	 end Same_IDs;
+
+	 pragma Inline_Always(Same_IDs);
+
+      begin
+	 for I in 1..Device_Vector.Length loop
+	    if Same_IDs(Device_Vector.Element(I), Service) then
+	       Pl_Debug("Removing service:" & To_String
+			  (Device_Vector.Element(I).Universal_Serial_Number) &
+			  " / " &
+			  To_String(Device_Vector.Element(I).Service_Type)
+		       );
+	       Device_Vector.Delete(I);
+	       return;
+	    end if;
+	 end loop;
+      end Remove_Service;
+
    begin
       if Device.Service_Type = "" then raise Header_Malformed
 	with "Header «NT» (Service Type) is missing";
@@ -261,6 +245,27 @@ package body SSDP.Services is
 	    Posn: Natural;
 	    First, Last: Natural;
 	    Man_Line, ST_Line, S_Line: Natural := 0;
+
+	    type Device_Array_Type is array (Device_Count_Type range <>)
+	      of SSDP_Service;
+
+	    function Matching_Devices(Service_Type: in String)
+				     return Device_Array_Type is
+	       Count: Device_Count_Type'Base := 0;
+	       Devices: Device_Array_Type(1..Device_Vector.Length);
+	    begin
+	       for I in 1..Device_Vector.Length loop
+		  if Service_Type = "ssdp:all" or else
+		    Device_Vector.Element(I).Service_Type = To_US(Service_Type)
+		  then
+		     Count := Count + 1;
+		     Devices(Count) := Device_Vector.Element(I);
+		  end if;
+	       end loop;
+
+	       return Devices(1..Count);
+	    end Matching_Devices;
+
 	 begin
 	    for I in Lines'Range loop
 	       Posn := Index(To_Upper(Lines(I).all), "MAN:");
@@ -386,7 +391,7 @@ package body SSDP.Services is
 
    procedure Start_Listening is
    begin
-      SSDP.Utils.Start_Listening(Service_Job'access);
+      SSDP.Utils.Start_Listening(Service_Job'Access);
    end Start_Listening;
 
    procedure Stop_Listening is
