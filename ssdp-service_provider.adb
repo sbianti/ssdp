@@ -313,12 +313,14 @@ package body SSDP.Service_Provider is
 		    Both) /= """ssdp:discover""" then
 	       raise SSDP_Message_Malformed
 		 with "unmanaged M-Search message with Man field ≠ " &
-		 "ssdp:discover. Here:" &
+		 """ssdp:discover"". Here:" &
 		 Trim(Lines(Man_Line)(First..Last), Both);
 	    end if;
 
 	    First := Lines(ST_Line)'First + 3;
 	    Last := Lines(ST_Line)'Last;
+
+	    Pl_Debug("Type: " & Lines(ST_Line)(First..Last));
 
 	    declare
 	       Devices: Device_Array_Type :=
@@ -336,9 +338,10 @@ package body SSDP.Service_Provider is
 	       end if;
 
 	       for I in Devices'Range loop
-		  Pl_Debug("Envoie du device:" &
+		  Pl_Debug("Matching device:" &
 			     To_String(Devices(I).Universal_Serial_Number) &
-			     " avec: " & To_String(Devices(I).Cache_Control));
+			     " with cache-control: [" &
+			     To_String(Devices(I).Cache_Control) & "]");
 		  M_Search_Response(Devices(I), To_String(USN_M_Search),
 				    (1 => To_US("Que-dale:rien")), To => Addr);
 	       end loop;
