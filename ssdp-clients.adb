@@ -22,18 +22,21 @@ with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Exceptions;
 with Ada.Containers.Vectors;
+with Ada.Calendar;
+with Ada.Text_IO;
 
 with Gnat.Sockets;
 
 with SSDP.Utils;
 
 package body SSDP.Clients is
-   use SSDP.Utils, Gnat.Sockets, Ada.Containers;
+   use SSDP.Utils, Gnat.Sockets, Ada.Containers, Ada.Calendar;
 
    type Service_Device_Type is new Device_Type with record
-      Location, -- only one here, we only need the preferred value between
-		-- Location and AL. See rationnal in Parse_Response
-      Expiration: Unbounded_String; -- Dito here.
+      -- only one here, we only need the preferred value between
+      -- Location and AL. See rationnal in Parse_Response:
+      Location: Unbounded_String;
+      Expiration: Time; -- Dito here.
    end record;
 
    -- Only one SSDP client should usually exist, however, we choose to allow
@@ -115,10 +118,13 @@ package body SSDP.Clients is
       type Expiration_Type is (Cache_Control, Expires);
 
       function Get_Expiration(Expiration_Header: in Expiration_Type;
-			      Str: in String) return Unbounded_String is
+			      Str: in String) return Time is
 	 use Ada.Strings.Fixed;
 
+	 package Natural_IO is new Ada.Text_IO.Integer_IO(Natural);
+
 	 Posn: Natural;
+	 Expiration_Val, Last: Natural;
       begin
 	 case Expiration_Header is
 	    when Cache_Control =>
@@ -139,7 +145,10 @@ package body SSDP.Clients is
 
 	       Pl_Debug("max-age =" & Str(Posn + 1..Str'Last));
 
-	       return To_US(Str(Posn + 1..Str'Last));
+	       -- We avoid decimal values by getting a natural, not a duration:
+	       Natural_IO.Get(Str(Posn + 1..Str'Last), Expiration_Val, Last);
+
+	       return Clock + Duration(Expiration_Val);
 
 	    when Expires =>
 	       -- Need to be implemented, see RFC here:
@@ -147,6 +156,11 @@ package body SSDP.Clients is
 	       raise SSDP_Message_Malformed
 		 with "Expires field decoding not yet implemented, SORRY :(";
 	 end case;
+
+      exception
+	 when Ada.Text_IO.Data_Error => raise SSDP_Message_Malformed
+	    with "max-age header-value has incorrect value: " &
+	    Str(Posn..Str'Last);
       end Get_Expiration;
 
       procedure Update(Service: in Service_Device_Type) is
