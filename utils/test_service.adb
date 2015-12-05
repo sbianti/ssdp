@@ -44,6 +44,9 @@ procedure Test_Service is
    Default_Service_Type: aliased constant String := "chauffage:central";
    Service_Type_Value: access constant String;
 
+   Default_Lifetime: aliased constant String := "600";
+   Lifetime_Value: access constant String;
+
    Null_Header: SSDP.Message_Header_Array(1..0);
 
    Str: String(1..10);
@@ -57,7 +60,8 @@ procedure Test_Service is
 			       Universal_Serial_Number => UUID_Value.all,
 			       Location => "",
 			       AL => "<http://halsensortester.mp.intel.com>",
-			       Cache_Control => "max-age = 600",
+			       Cache_Control => "max-age = " &
+				 Lifetime_Value.all,
 			       Expires => "");
    end Default_Initialization;
 
@@ -84,7 +88,7 @@ procedure Test_Service is
       Stop_Listening;
    end Default_Scheduling;
 
-   type Test_Options is (Batch, Service_Type, UUID, Bye_Bye_On_Exit);
+   type Test_Options is (Batch, Service_Type, UUID, Bye_Bye_On_Exit, Lifetime);
 
    package Get_Test_Options is new Get_Options(Test_Options);
    use Get_Test_Options;
@@ -149,7 +153,14 @@ procedure Test_Service is
 	(Short_Name => 'i',
 	 Needs_Value => Yes,
 	 Short_Description => To_US("Set the uuid of the declared service"),
-	 Value_Form => To_US("uuid:AAAABBBB-1111-2222-3333-CCDDEEFF0055"))
+	 Value_Form => To_US("uuid:AAAABBBB-1111-2222-3333-CCDDEEFF0055")),
+
+      Lifetime =>
+	(Short_Name => 'l',
+	 Needs_Value => Yes,
+	 Short_Description => To_US("The amount of time (in second) after " &
+				      "which the service is considered gone"),
+	 Value_Form => To_US("300"))
      );
 
    package Scheduling is new Command_Scheduling(Service_Command_Name_Type);
@@ -170,6 +181,12 @@ begin
       UUID_Value := new String'(Get_Value(Result(UUID), 1));
    else
       UUID_Value := Default_UUID'Access;
+   end if;
+
+   if Result(Lifetime).Is_Set then
+      Lifetime_Value := new String'(Get_Value(Result(Lifetime), 1));
+   else
+      Lifetime_Value := Default_Lifetime'Access;
    end if;
 
    if not Result(Batch).Is_Set then
