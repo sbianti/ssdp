@@ -68,11 +68,24 @@ package body SSDP.Service_Provider is
    end Matching_Devices;
 
    procedure Remove_Service(Service: in SSDP_Service) is
-      -- Removes all devices with this USN (could be many)
+
       Count: Natural := 0;
+
+      function Same_IDs(A, B: in SSDP_Service) return Boolean is
+      begin
+	 if A.Universal_Serial_Number = B.Universal_Serial_Number and
+	   A.Service_Type = B.Service_Type then
+	    return True;
+	 else
+	    return False;
+	 end if;
+      end Same_IDs;
+
+      pragma Inline_Always(Same_IDs);
+
    begin
       for I in 1..Device_Vector.Length loop
-	 if Device_Vector.Element(I) = Service then
+	 if Same_IDs(Device_Vector.Element(I), Service) then
 	    Pl_Debug("Removing service:" & To_String
 		       (Device_Vector.Element(I).Universal_Serial_Number) &
 		       " / " & To_String(Device_Vector.Element(I).Service_Type)
