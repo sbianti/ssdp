@@ -33,16 +33,17 @@ package body SSDP.Clients is
    use SSDP.Utils, Gnat.Sockets, Ada.Containers, Ada.Calendar;
 
    type Service_Device_Type is new Device_Type with record
-      -- only one here, we only need the preferred value between
-      -- Location and AL. See rationnal in Parse_Response:
+      -- We only need the preferred value between Location and AL.
+      -- See rationnal in Parse_Response:
       Location: Unbounded_String;
-      Expiration: Time; -- Dito here.
+      -- Dito here: prefered result from Cache-Control and Expires
+      Expiration: Time;
    end record;
 
    -- Only one SSDP client should usually exist, however, we choose to allow
    --  the existence of several ones creating a dedicated type SSDP_Client.
-   -- This vector contains the list of the discovered services and permit to
-   --  manage in one place the received events for every declared SSDP_Client.
+   -- This vector contains the discovered services and permit to manage in one
+   --  place the received events for every declared SSDP_Client.
    subtype Service_Count_Type is Count_Type range 1..100;
    package Service_Vectors is new Vectors(Service_Count_Type,
 					  Service_Device_Type);
@@ -151,7 +152,7 @@ package body SSDP.Clients is
 	       return Clock + Duration(Expiration_Val);
 
 	    when Expires =>
-	       -- Need to be implemented, see RFC here:
+	       -- Needs to be implemented, see RFC here:
 	       -- http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1
 	       raise SSDP_Message_Malformed
 		 with "Expires field decoding not yet implemented, SORRY :(";
