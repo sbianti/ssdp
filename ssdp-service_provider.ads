@@ -46,6 +46,6 @@ package SSDP.Service_Provider is
 private
    type SSDP_Service is new Device_Type with record
       Location, AL, -- only one is required
-      Cache_Control, Expires: Unbounded_String; -- dito
+	Cache_Control, Expires: Unbounded_String; -- dito
    end record;
 end SSDP.Service_Provider;

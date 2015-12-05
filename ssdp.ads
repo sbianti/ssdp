@@ -30,12 +30,12 @@ package SSDP is
 
    type Job_Procedure_Access is access procedure;
 
-    ----------------------------------------------------------------------------
-    --  SSDP messages are http 1.1 messages where:			      --
-    --   ⋅service type URI represents the type of service (ex: refrigerator)  --
-    --   ⋅USN is a URI which uniquely identifies a particular instance of a   --
-    --  service, ex: upnp:uuid:bla:… for a device that has a UUID             --
-    ----------------------------------------------------------------------------
+   ----------------------------------------------------------------------------
+   --  SSDP messages are http 1.1 messages where:			     --
+   --   ⋅service type URI represents the type of service (ex: refrigerator)  --
+   --   ⋅USN is a URI which uniquely identifies a particular instance of a   --
+   --  service, ex: upnp:uuid:bla:… for a device that has a UUID             --
+   ----------------------------------------------------------------------------
 
    type Command_Name_Type is (Discover, Sleep, Alive, Bye_Bye);
 

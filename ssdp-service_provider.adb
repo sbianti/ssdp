@@ -239,7 +239,7 @@ package body SSDP.Service_Provider is
 
       if Device.Universal_Serial_Number = "" then
 	 raise Header_Malformed
-	with "Header «USN» (Universal Service Type) is missing";
+	   with "Header «USN» (Universal Service Type) is missing";
       end if;
 
       Remove_Devices(Device.Universal_Serial_Number);
@@ -323,11 +323,11 @@ package body SSDP.Service_Provider is
 	       else
 		  USN_M_Search := To_US("");
 	       end if;
-	    Pl_Debug("USN_M_SEARCH: " & To_String(USN_M_Search));
+	       Pl_Debug("USN_M_SEARCH: " & To_String(USN_M_Search));
 	       for I in Devices'Range loop
 		  Pl_Debug("Envoie du device:" &
 			     To_String(Devices(I).Universal_Serial_Number) &
-			  " avec: " & To_String(Devices(I).Cache_Control));
+			     " avec: " & To_String(Devices(I).Cache_Control));
 		  M_Search_Response(Devices(I), To_String(USN_M_Search),
 				    (1 => To_US("Que-dale:rien")));
 	       end loop;

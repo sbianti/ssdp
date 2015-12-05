@@ -154,7 +154,7 @@ package body SSDP.Service_Finder is
 	       end if;
 
 	       Pl_Debug("Extra info: [" & Lines(I).all & "]");
-	       <<Continue>>
+	   <<Continue>>
 	    end loop;
 
 	    if NTS_Line = 0 then raise SSDP_Message_Malformed

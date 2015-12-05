@@ -56,7 +56,7 @@ package body SSDP.Command_Scheduling is
       procedure Get_Values(Command: in out Command_Type) is
 
 	 function Coma_Missing_After_Sleep(Bad_Char: in Character)
-					    return String is
+					  return String is
 	    Message: constant String :=  "',<value>' missing after sleep:";
 	 begin
 	    if Bad_Char = Latin_1.Nul then
@@ -152,7 +152,7 @@ package body SSDP.Command_Scheduling is
 	       -- command_name,<int>,“…”
 	       --                     ×
 	       if Commands_String(Current) = ' ' then raise Parsing_Error
-		     with Value_Missing_After_Coma("space");
+		 with Value_Missing_After_Coma("space");
 	       end if;
 
 	       begin
@@ -173,7 +173,7 @@ package body SSDP.Command_Scheduling is
 	       -- command_name,<int>,<duration>“…”
 	       --                               ×
 	       if Commands_String(Current) = ' ' then
-		   -- no max value so messages will be sent with a fix delay
+		  -- no max value so messages will be sent with a fix delay
 		  return;
 	       elsif Commands_String(Current) /= ',' then raise Parsing_Error
 		 with Bad_Character_Debug;
@@ -298,47 +298,47 @@ package body SSDP.Command_Scheduling is
 
       for I in 1..Index_Type(Schedule.Length) loop
 
-	    case Schedule.Element(I).Command_Name is
+	 case Schedule.Element(I).Command_Name is
 
-	       when Alive | Discover | Bye_Bye =>
-		  for N in 1..Schedule.Element(I).Number loop
-		     case Schedule.Element(I).Command_Name is
-			when Alive =>
-			   Pl_Debug("Alive" & N'Img & " /" &
-				      Schedule.Element(I).Number'Img);
-			   Notify_Alive(SSDP_Service(Device), Header);
+	    when Alive | Discover | Bye_Bye =>
+	       for N in 1..Schedule.Element(I).Number loop
+		  case Schedule.Element(I).Command_Name is
+		     when Alive =>
+			Pl_Debug("Alive" & N'Img & " /" &
+				   Schedule.Element(I).Number'Img);
+			Notify_Alive(SSDP_Service(Device), Header);
 
-			when Discover =>
-			   Pl_Debug("Discover" & N'Img & " /" &
-				      Schedule.Element(I).Number'Img);
-			   M_Search(SSDP_Client(Device), Header);
+		     when Discover =>
+			Pl_Debug("Discover" & N'Img & " /" &
+				   Schedule.Element(I).Number'Img);
+			M_Search(SSDP_Client(Device), Header);
 
-			when Bye_Bye =>
-			   Pl_Debug("Bye bye" & N'Img & " /" &
-				      Schedule.Element(I).Number'Img);
-			   Notify_Bye_Bye(SSDP_Service(Device));
+		     when Bye_Bye =>
+			Pl_Debug("Bye bye" & N'Img & " /" &
+				   Schedule.Element(I).Number'Img);
+			Notify_Bye_Bye(SSDP_Service(Device));
 
-			when others => null;
-		     end case;
+		     when others => null;
+		  end case;
 
-		     exit when Schedule.Element(I).Number = N;
+		  exit when Schedule.Element(I).Number = N;
 
-		     if Schedule.Element(I).Max_Random_Value = 0.0 and
-		       Schedule.Element(I).Min_Random_Value /= 0.0 then
-			Pl_Debug("     delay of" &
-				   Schedule.Element(I).Min_Random_Value'Img);
-			delay Schedule.Element(I).Min_Random_Value;
-		     elsif Schedule.Element(I).Max_Random_Value /= 0.0 then
-			Random_Delay(Schedule.Element(I).Min_Random_Value,
-				     Schedule.Element(I).Max_Random_Value);
-		     end if;
+		  if Schedule.Element(I).Max_Random_Value = 0.0 and
+		    Schedule.Element(I).Min_Random_Value /= 0.0 then
+		     Pl_Debug("     delay of" &
+				Schedule.Element(I).Min_Random_Value'Img);
+		     delay Schedule.Element(I).Min_Random_Value;
+		  elsif Schedule.Element(I).Max_Random_Value /= 0.0 then
+		     Random_Delay(Schedule.Element(I).Min_Random_Value,
+				  Schedule.Element(I).Max_Random_Value);
+		  end if;
 
-		  end loop;
+	       end loop;
 
-	       when Sleep =>
-		  Pl_Debug("SLEEP" & Schedule.Element(I).Value'Img & '"');
-		  delay Schedule.Element(I).Value;
-	    end case;
+	    when Sleep =>
+	       Pl_Debug("SLEEP" & Schedule.Element(I).Value'Img & '"');
+	       delay Schedule.Element(I).Value;
+	 end case;
 
       end loop;
 
