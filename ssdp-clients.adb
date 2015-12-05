@@ -229,8 +229,11 @@ package body SSDP.Clients is
 	 if Posn > 1 then raise SSDP_Message_Malformed
 	   with "Notify line doesn't begin at character 0";
 	 elsif Posn = 1 then
+	    Pl_Debug("____________________________________________________");
+	    Pl_Debug("From " & Image(Addr) & " [Multicast]");
 	    Pl_Debug("Notify received");
 	    Get_Notify_Info(Lines(2..Lines'Last));
+	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
 	    return;
 	 end if;
 
@@ -353,8 +356,11 @@ package body SSDP.Clients is
 	    if Posn > 1 then raise SSDP_Message_Malformed
 	      with "Reply to M-SEARCH line doesn't begin at character 0";
 	    elsif Posn = 1 then
+	       Pl_Debug("____________________________________________________");
+	       Pl_Debug("From " & Image(Addr) & " [Unicast]");
 	       Pl_Debug("Reply to M-SEARCH received");
 	       Get_M_Search_Response(Lines(2..Lines'Last));
+	       Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
 	       return;
 	    end if;
 
@@ -366,10 +372,7 @@ package body SSDP.Clients is
 	    begin
 	       Receive_Socket(Global_Network_Settings.Socket(Unicast),
 			      Msg, Last, Addr);
-	       Pl_Debug("____________________________________________________");
-	       Pl_Debug("From " & Image(Addr) & " [Unicast]");
 	       Parse_Response(To_String(Msg(1..Last)));
-	       Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
 	    exception
 	       when E: SSDP_Message_Malformed =>
 		  Pl_Debug("Message malformed:" & Exception_Message(E));
@@ -386,10 +389,7 @@ package body SSDP.Clients is
 	 begin
 	    Receive_Socket(Global_Network_Settings.Socket(Multicast),
 			   Msg, Last, Addr);
-	    Pl_Debug("____________________________________________________");
-	    Pl_Debug("From " & Image(Addr) & " [Multicast]");
 	    Parse_Message(To_String(Msg(1..Last)));
-	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
 	 exception
 	    when E: Not_An_SSDP_Message | SSDP_Message_Malformed =>
 	       Pl_Debug(Exception_Message(E));

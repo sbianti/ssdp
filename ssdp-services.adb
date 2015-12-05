@@ -350,8 +350,11 @@ package body SSDP.Services is
 	 if Posn_M_SEARCH > 1 then raise SSDP_Message_Malformed
 	   with "M-SEARCH line doesn't begin at character 0";
 	 elsif Posn_M_SEARCH = 1 then
+	    Pl_Debug("____________________________________________________");
+	    Pl_Debug("From " & Image(Addr));
 	    Pl_Debug("M-search received");
 	    Get_M_Search_Info(Lines(2..Lines'Last));
+	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
 	    return;
 	 end if;
 
@@ -378,10 +381,7 @@ package body SSDP.Services is
 	 begin
 	    Receive_Socket(Global_Network_Settings.Socket(Multicast),
 			   Msg, Last, Addr);
-	    Pl_Debug("____________________________________________________");
-	    Pl_Debug("From " & Image(Addr));
 	    Parse_Message(To_String(Msg(1..Last)));
-	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
 	 exception
 	    when E: Not_An_SSDP_Message | SSDP_Message_Malformed =>
 	       Pl_Debug(Exception_Message(E));
