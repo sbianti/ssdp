@@ -312,7 +312,7 @@ package body SSDP.Command_Scheduling is
 			when Discover =>
 			   Pl_Debug("Discover" & N'Img & " /" &
 				      Schedule.Element(I).Number'Img);
-			   M_Search(Finder_Device_Type(Device), Header);
+			   M_Search(SSDP_Client(Device), Header);
 
 			when Bye_Bye =>
 			   Pl_Debug("Bye bye" & N'Img & " /" &

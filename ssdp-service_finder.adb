@@ -45,8 +45,8 @@ package body SSDP.Service_Finder is
    Services: Service_Vectors.Vector;
 
    function Initialize_Device(Service_Type, Universal_Serial_Number: in String)
-			     return Finder_Device_Type is
-      Device: Finder_Device_Type;
+			     return SSDP_Client is
+      Device: SSDP_Client;
    begin
       if Service_Type = "" or Universal_Serial_Number = "" then
 	 raise Header_Malformed
@@ -61,30 +61,30 @@ package body SSDP.Service_Finder is
       return Device;
    end Initialize_Device;
 
-   procedure Set_Universal_Serial_Number(Device: in out Finder_Device_Type;
+   procedure Set_Universal_Serial_Number(Device: in out SSDP_Client;
 					 Universal_Serial_Number: in String) is
    begin
       Device.Universal_Serial_Number := To_US(Universal_Serial_Number);
    end Set_Universal_Serial_Number;
 
-   procedure Set_Service_Type(Device: in out Finder_Device_Type;
+   procedure Set_Service_Type(Device: in out SSDP_Client;
 			      Service_Type: in String) is
    begin
       Device.Service_Type := To_US(Service_Type);
    end Set_Service_Type;
 
-   function Get_Universal_Serial_Number(Device: in Finder_Device_Type)
+   function Get_Universal_Serial_Number(Device: in SSDP_Client)
 				       return String is
    begin
       return To_String(Device.Universal_Serial_Number);
    end Get_Universal_Serial_Number;
 
-   function Get_Service_Type(Device: in Finder_Device_Type) return String is
+   function Get_Service_Type(Device: in SSDP_Client) return String is
    begin
       return To_String(Device.Service_Type);
    end Get_Service_Type;
 
-   procedure M_Search(Device: in Finder_Device_Type;
+   procedure M_Search(Device: in SSDP_Client;
 		      Other_Header: in Message_Header_Array) is
       Start_Line: constant String := M_Search_Star_Line & EOL;
    begin

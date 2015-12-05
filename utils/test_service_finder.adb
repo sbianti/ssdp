@@ -29,7 +29,7 @@ with Get_Options; --https://github.com/sbianti/GetOptions
 procedure Test_Service_Finder is
    use SSDP, Ada.Exceptions, Test_Utils;
 
-   Device: Service_Finder.Finder_Device_Type;
+   Device: Service_Finder.SSDP_Client;
 
    Discover_Header: SSDP.Message_Header_Array :=
      (Service_Finder.To_US("Toto: inutile:pardon"),
