@@ -19,7 +19,7 @@
 
 with Ada.Text_IO;
 with Ada.Exceptions;
-with SSDP.Service_Provider;
+with SSDP.Services;
 with SSDP.Command_Scheduling;
 
 with Test_Utils;
@@ -29,13 +29,13 @@ with Get_Options; --https://github.com/sbianti/GetOptions
 procedure Test_Service_Provider is
    use SSDP, Ada.Exceptions, Test_Utils;
 
-   subtype SSDP_Service is Service_Provider.SSDP_Service;
+   subtype SSDP_Service is Services.SSDP_Service;
 
    Device: SSDP_Service;
 
    Notify_Header: SSDP.Message_Header_Array :=
-     (Service_Provider.To_US("Affaires: dentifrice"),
-      Service_Provider.To_US("DIY: courses:rien"));
+     (Services.To_US("Affaires: dentifrice"),
+      Services.To_US("DIY: courses:rien"));
 
    UUID: constant String := "822ccbbf-3aa6-44c2-80ef-0307f9673521";
 
@@ -50,7 +50,7 @@ procedure Test_Service_Provider is
    Lg: Natural;
 
    function Default_Initialization return SSDP_Service is
-      use SSDP.Service_Provider;
+      use SSDP.Services;
    begin
       return Initialize_Device(Service_Type => Service_Type_Value.all,
 			       Universal_Serial_Number => UUID,
@@ -61,7 +61,7 @@ procedure Test_Service_Provider is
    end Default_Initialization;
 
    procedure Default_Scheduling is
-      use SSDP.Service_Provider, Ada.Text_IO;
+      use SSDP.Services, Ada.Text_IO;
    begin
 
       Device := Default_Initialization;
@@ -154,7 +154,7 @@ begin
    else
       Device := Default_Initialization;
 
-      Service_Provider.Start_Listening;
+      Services.Start_Listening;
 
       Schedule := Parse(Get_Value(Result(Batch), 1));
 
@@ -162,13 +162,13 @@ begin
 
       -- Waiting for user interaction:
       Ada.Text_IO.Get_Line(Str, Lg);
-      Service_Provider.Stop_Listening;
+      Services.Stop_Listening;
    end if;
 
 exception
-   when End_Of_Program_With_Help_Menu => Service_Provider.Stop_Listening;
+   when End_Of_Program_With_Help_Menu => Services.Stop_Listening;
 
    when E: Scheduling.Parsing_Error =>
       Pl_Error(Exception_Message(E));
-      Service_Provider.Stop_Listening;
+      Services.Stop_Listening;
 end Test_Service_Provider;

@@ -22,7 +22,7 @@ with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Numerics.Float_Random;
 
-with SSDP.Utils, SSDP.Service_Finder, SSDP.Service_Provider;
+with SSDP.Utils, SSDP.Clients, SSDP.Services;
 
 package body SSDP.Command_Scheduling is
    use Ada.Strings.Fixed, Ada.Characters;
@@ -293,7 +293,7 @@ package body SSDP.Command_Scheduling is
 	 delay Amount_Of_Time;
       end Random_Delay;
 
-      use SSDP.Service_Finder, SSDP.Service_Provider;
+      use SSDP.Clients, SSDP.Services;
    begin
 
       for I in 1..Index_Type(Schedule.Length) loop

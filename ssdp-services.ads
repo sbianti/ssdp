@@ -17,36 +17,38 @@
 --  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA --
 --------------------------------------------------------------------------------
 
-package SSDP.Service_Finder is
+with Gnat.Sockets;
+
+package SSDP.Services is
 
    function To_US(Str: String) return Unbounded_String
      renames To_Unbounded_String;
 
-   type SSDP_Client is new Device_Type with private;
+   type SSDP_Service is new Device_Type with private;
 
-   function Initialize_Device(Service_Type, Universal_Serial_Number: in String)
-			     return SSDP_Client;
+   function Initialize_Device(Service_Type, Universal_Serial_Number,
+				Location, AL, -- only one is required
+				Cache_Control, Expires: String) -- dito
+			     return SSDP_Service;
 
-   procedure Set_Universal_Serial_Number(Device: in out SSDP_Client;
-					 Universal_Serial_Number: in String);
+   procedure M_Search_Response(Device: in SSDP_Service;
+			       USN_Requester: in String;
+			       Other_Headers: in Message_Header_Array;
+			       To: in Gnat.Sockets.Sock_Addr_Type);
 
-   procedure Set_Service_Type(Device: in out SSDP_Client;
-			      Service_Type: in String);
+   procedure Notify_Alive(Device: in SSDP_Service;
+			  Other_Headers: in Message_Header_Array);
 
-   function Get_Universal_Serial_Number(Device: in SSDP_Client)
-				       return String;
-
-   function Get_Service_Type(Device: in SSDP_Client) return String;
-
-   procedure M_Search(Device: in SSDP_Client;
-		      Other_Header: in Message_Header_Array);
+   procedure Notify_Bye_Bye(Device: in SSDP_Service);
 
    procedure Start_Listening;
 
    procedure Stop_Listening;
 
+   Bad_Service: exception;
 private
-
-   type SSDP_Client is new Device_Type with null record;
-
-end SSDP.Service_Finder;
+   type SSDP_Service is new Device_Type with record
+      Location, AL, -- only one is required
+	Cache_Control, Expires: Unbounded_String; -- dito
+   end record;
+end SSDP.Services;

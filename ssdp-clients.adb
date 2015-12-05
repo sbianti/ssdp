@@ -27,7 +27,7 @@ with Gnat.Sockets;
 
 with SSDP.Utils;
 
-package body SSDP.Service_Finder is
+package body SSDP.Clients is
    use SSDP.Utils, Gnat.Sockets, Ada.Containers;
 
    type Service_Device_Type is new Device_Type with record
@@ -297,4 +297,4 @@ package body SSDP.Service_Finder is
       SSDP.Utils.Stop_Listening;
    end Stop_Listening;
 
-end SSDP.Service_Finder;
+end SSDP.Clients;

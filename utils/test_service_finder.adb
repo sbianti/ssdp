@@ -19,7 +19,7 @@
 
 with Ada.Text_IO;
 with Ada.Exceptions;
-with SSDP.Service_Finder;
+with SSDP.Clients;
 with SSDP.Command_Scheduling;
 
 with Test_Utils;
@@ -29,11 +29,11 @@ with Get_Options; --https://github.com/sbianti/GetOptions
 procedure Test_Service_Finder is
    use SSDP, Ada.Exceptions, Test_Utils;
 
-   Device: Service_Finder.SSDP_Client;
+   Device: Clients.SSDP_Client;
 
    Discover_Header: SSDP.Message_Header_Array :=
-     (Service_Finder.To_US("Toto: inutile:pardon"),
-      Service_Finder.To_US("Zak: important:rien"));
+     (Clients.To_US("Toto: inutile:pardon"),
+      Clients.To_US("Zak: important:rien"));
 
    Null_Header: SSDP.Message_Header_Array(1..0);
 
@@ -48,7 +48,7 @@ procedure Test_Service_Finder is
    Lg: Natural;
 
    procedure Default_Scheduling is
-      use SSDP.Service_Finder, Ada.Text_IO;
+      use SSDP.Clients, Ada.Text_IO;
    begin
       Device := Initialize_Device(Service_Type_Value.all, UUID);
 
@@ -136,9 +136,9 @@ begin
    if not Result(Batch).Is_Set then
       Default_Scheduling;
    else
-      Device := Service_Finder.Initialize_Device(Service_Type_Value.all, UUID);
+      Device := Clients.Initialize_Device(Service_Type_Value.all, UUID);
 
-      Service_Finder.Start_Listening;
+      Clients.Start_Listening;
 
       Schedule := Parse(Get_Value(Result(Batch), 1));
 
@@ -146,14 +146,14 @@ begin
 
       -- Waiting for user interaction:
       Ada.Text_IO.Get_Line(Str, Lg);
-      Service_Finder.Stop_Listening;
+      Clients.Stop_Listening;
    end if;
 
 exception
    when End_Of_Program_With_Help_Menu =>
-      Service_Finder.Stop_Listening;
+      Clients.Stop_Listening;
 
    when E: Scheduling.Parsing_Error =>
       Pl_Error(Exception_Message(E));
-      Service_Finder.Stop_Listening;
+      Clients.Stop_Listening;
 end Test_Service_Finder;

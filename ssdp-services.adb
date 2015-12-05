@@ -25,7 +25,7 @@ with Ada.Containers.Vectors;
 
 with SSDP.Utils;
 
-package body SSDP.Service_Provider is
+package body SSDP.Services is
    use SSDP.Utils, Ada.Containers;
 
    -- Each service initialized is kept in this list, this allow to kown
@@ -407,4 +407,4 @@ package body SSDP.Service_Provider is
       SSDP.Utils.Stop_Listening;
    end Stop_Listening;
 
-end Ssdp.Service_Provider;
+end Ssdp.Services;
