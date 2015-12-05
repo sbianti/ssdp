@@ -55,6 +55,25 @@ package body SSDP.Clients is
 					  Service_Device_Type);
    Services: Service_Vectors.Vector;
 
+   function "<" (Left, Right: in Service_Device_Type) return Boolean is
+   begin
+      return Left.Expiration < Right.Expiration;
+   end "<";
+   package Service_Sorting is new Service_Vectors.Generic_Sorting;
+
+   procedure Replace_Service(Count: in Service_Count_Type;
+			     Service: in Service_Device_Type) is
+   begin
+      Services.Replace_Element(Count, Service);
+      Service_Sorting.Sort(Services);
+   end Replace_Service;
+
+   procedure Add_Service(Service: in Service_Device_Type) is
+   begin
+      Services.Append(Service);
+      Service_Sorting.Sort(Services);
+   end Add_Service;
+
    function Initialize_Device(Service_Type, Universal_Serial_Number: in String)
 			     return SSDP_Client is
       Device: SSDP_Client;
@@ -178,14 +197,14 @@ package body SSDP.Clients is
 	    if Services.Element(I) = Service then
 	       Pl_Debug("Update device: " & To_String(USN) & ' ' &
 			  To_String(NT));
-	       Services.Replace_Element(I, Service);
+	       Replace_Service(I, Service);
 	       return;
 	    end if;
 	 end loop;
 
 	 Pl_Debug("Adding device: " & To_String(USN) & ' ' & To_String(NT));
 
-	 Services.Append(Service);
+	 Add_Service(Service);
       end Update;
 
       procedure Parse_Message(Message: in String) is
