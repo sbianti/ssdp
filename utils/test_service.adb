@@ -26,7 +26,7 @@ with Test_Utils;
 
 with Get_Options; --https://github.com/sbianti/GetOptions
 
-procedure Test_Service_Provider is
+procedure Test_Service is
    use SSDP, Ada.Exceptions, Test_Utils;
 
    subtype SSDP_Service is Services.SSDP_Service;
@@ -171,4 +171,4 @@ exception
    when E: Scheduling.Parsing_Error =>
       Pl_Error(Exception_Message(E));
       Services.Stop_Listening;
-end Test_Service_Provider;
+end Test_Service;

@@ -26,7 +26,7 @@ with Test_Utils;
 
 with Get_Options; --https://github.com/sbianti/GetOptions
 
-procedure Test_Service_Finder is
+procedure Test_Client is
    use SSDP, Ada.Exceptions, Test_Utils;
 
    Device: Clients.SSDP_Client;
@@ -156,4 +156,4 @@ exception
    when E: Scheduling.Parsing_Error =>
       Pl_Error(Exception_Message(E));
       Clients.Stop_Listening;
-end Test_Service_Finder;
+end Test_Client;

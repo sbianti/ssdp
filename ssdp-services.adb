@@ -260,7 +260,7 @@ package body SSDP.Services is
 		     "NTS: ssdp:byebye" & EOL & EOL);
    end Notify_Bye_Bye;
 
-   procedure Service_Provider_Job is
+   procedure Service_Job is
       use Ada.Streams, Ada.Exceptions, Gnat.Sockets;
 
       Msg: Stream_Element_Array(1..500);
@@ -395,11 +395,11 @@ package body SSDP.Services is
 	       Pl_Debug(Exception_Message(E));
 	 end;
       end loop;
-   end Service_Provider_Job;
+   end Service_Job;
 
    procedure Start_Listening is
    begin
-      SSDP.Utils.Start_Listening(Service_Provider_Job'access);
+      SSDP.Utils.Start_Listening(Service_Job'access);
    end Start_Listening;
 
    procedure Stop_Listening is
