@@ -37,10 +37,11 @@ procedure Test_Client is
 
    Null_Header: SSDP.Message_Header_Array(1..0);
 
-   UUID: constant String := "uuid:0dbcf247-96ca-4d58-b3de-a22cd083125b";
+   Default_UUID: aliased constant String :=
+     "uuid:0dbcf247-96ca-4d58-b3de-a22cd083125b";
+   UUID_Value: access constant String;
 
    Default_Service_Type: aliased constant String := "sncf:TGV";
-
    Service_Type_Value: access constant String;
 
    Str: String(1..10);
@@ -50,7 +51,7 @@ procedure Test_Client is
    procedure Default_Scheduling is
       use SSDP.Clients, Ada.Text_IO;
    begin
-      Device := Initialize_Device(Service_Type_Value.all, UUID);
+      Device := Initialize_Device(Service_Type_Value.all, UUID_Value.all);
 
       Start_Listening;
 
@@ -67,7 +68,7 @@ procedure Test_Client is
       Stop_Listening;
    end Default_Scheduling;
 
-   type Test_Options is (Batch, Service_Type);
+   type Test_Options is (Batch, Service_Type, UUID);
 
    package Get_Test_Options is new Get_Options(Test_Options);
    use Get_Test_Options;
@@ -78,7 +79,8 @@ procedure Test_Client is
 
    Example_Value: constant array(Test_Options) of Unbounded_String :=
      (To_US("""discover,3,0.5,2.5 sleep,10.0 discover,3,1.0,3.0"""),
-      To_US(Default_Service_Type));
+      To_US(Default_Service_Type),
+      others => Null_Unbounded_String);
 
    Description_Value: constant array(Test_Options) of Unbounded_String :=
      (To_US("Three DISCOVER sent with a random delay between 0”5 and 2”5" &
@@ -86,12 +88,14 @@ procedure Test_Client is
 	      "followed by three DISCOVER spaced by a random duration " &
 	      "between 1” and 3”"),
       To_US("The device service type to search for " &
-	      "(previous value is the default)"));
+	      "(previous value is the default)"),
+      others => Null_Unbounded_String);
 
    Help_Header: constant String :=
      "   Test program for SSDP clients API" & EOL & EOL &
      "   usage: " & Command_Name &
-     " [--batch «batch_line»][--service_type=oven:micro_wave]" & EOL & EOL &
+     " [--batch «batch_line»][--service_type=oven:micro_wave]" &
+     "[--uuid [type:]unique_value]" & EOL & EOL &
      "     batch_line ≡ command [command ]*" & EOL &
      "     command ≡ command_name[,occurence_number[,random_time_range]" &
      "|[,fix_delay]]" & EOL &
@@ -114,7 +118,13 @@ procedure Test_Client is
 	(Short_Name => 't',
 	 Needs_Value => Yes,
 	 Short_Description => Description_Value(Service_Type),
-	 Value_Form => Example_Value(Service_Type))
+	 Value_Form => Example_Value(Service_Type)),
+
+      UUID =>
+	(Short_Name => 'i',
+	 Needs_Value => Yes,
+	 Short_Description => To_US("Set the uuid of the declared client"),
+	 Value_Form => To_US("uuid:AAAABBBB-1111-2222-3333-CCDDEEFF0055"))
      );
 
    package Scheduling is new SSDP.Command_Scheduling(Client_Command_Name_Type);
@@ -133,10 +143,17 @@ begin
       Service_Type_Value := Default_Service_Type'Access;
    end if;
 
+   if Result(UUID).Is_Set then
+      UUID_Value := new String'(Get_Value(Result(UUID), 1));
+   else
+      UUID_Value := Default_UUID'Access;
+   end if;
+
    if not Result(Batch).Is_Set then
       Default_Scheduling;
    else
-      Device := Clients.Initialize_Device(Service_Type_Value.all, UUID);
+      Device := Clients.Initialize_Device(Service_Type_Value.all,
+					  UUID_Value.all);
 
       Clients.Start_Listening;
 

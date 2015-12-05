@@ -37,10 +37,11 @@ procedure Test_Service is
      (Services.To_US("Affaires: dentifrice"),
       Services.To_US("DIY: courses:rien"));
 
-   UUID: constant String := "822ccbbf-3aa6-44c2-80ef-0307f9673521";
+   Default_UUID: aliased constant String :=
+     "uuid:822ccbbf-3aa6-44c2-80ef-0307f9673521";
+   UUID_Value: access constant String;
 
    Default_Service_Type: aliased constant String := "chauffage:central";
-
    Service_Type_Value: access constant String;
 
    Null_Header: SSDP.Message_Header_Array(1..0);
@@ -53,7 +54,7 @@ procedure Test_Service is
       use SSDP.Services;
    begin
       return Initialize_Device(Service_Type => Service_Type_Value.all,
-			       Universal_Serial_Number => UUID,
+			       Universal_Serial_Number => UUID_Value.all,
 			       Location => "",
 			       AL => "<http://halsensortester.mp.intel.com>",
 			       Cache_Control => "max-age = 600",
@@ -83,7 +84,7 @@ procedure Test_Service is
       Stop_Listening;
    end Default_Scheduling;
 
-   type Test_Options is (Batch, Service_Type, Bye_Bye_On_Exit);
+   type Test_Options is (Batch, Service_Type, UUID, Bye_Bye_On_Exit);
 
    package Get_Test_Options is new Get_Options(Test_Options);
    use Get_Test_Options;
@@ -93,9 +94,10 @@ procedure Test_Service is
    Help_Section: constant Unbounded_String := To_US("Example:");
 
    Example_Value: constant array(Test_Options) of Unbounded_String :=
-     (To_US("""alive,5,1.5,4.0 sleep,12.0 alive,3,2.0 byebye,2"""),
-      To_US(Default_Service_Type),
-      To_US("2")
+     (Batch => To_US("""alive,5,1.5,4.0 sleep,12.0 alive,3,2.0 byebye,2"""),
+      Service_Type => To_US(Default_Service_Type),
+      Bye_Bye_On_Exit => To_US("2"),
+      others => Null_Unbounded_String
      );
 
    Description_Value: constant array(Test_Options) of Unbounded_String :=
@@ -105,13 +107,14 @@ procedure Test_Service is
 	      "followed by two BYEBYE messages sent without delay"),
       To_US("The device service type to search for " &
 	      "(previous value is the default)"),
-      To_US("One, or many bye-byes are sent when exiting normaly"));
+      To_US("One, or many bye-byes are sent when exiting normaly"),
+      others => Null_Unbounded_String);
 
    Help_Header: constant String :=
      "   Test program for SSDP services API" & EOL & EOL &
      "   usage: " & Command_Name &
      " [--batch «batch_line»][--service_type=oven:micro_wave]" &
-     "[--bye_bye_on_exit]" & EOL & EOL &
+     "[--bye_bye_on_exit] [--uuid [type:]unique_value]" & EOL & EOL &
      "     batch_line ≡ command [command ]*" & EOL &
      "     command ≡ command_name[,occurence_number[,random_time_range]" &
      "|[,fix_delay]]" & EOL &
@@ -140,7 +143,13 @@ procedure Test_Service is
 	(Short_Name => 'b',
 	 Needs_Value => Optional,
 	 Short_Description => Description_Value(Bye_Bye_On_Exit),
-	 Value_Form => Example_Value(Bye_Bye_On_Exit))
+	 Value_Form => Example_Value(Bye_Bye_On_Exit)),
+
+      UUID =>
+	(Short_Name => 'i',
+	 Needs_Value => Yes,
+	 Short_Description => To_US("Set the uuid of the declared service"),
+	 Value_Form => To_US("uuid:AAAABBBB-1111-2222-3333-CCDDEEFF0055"))
      );
 
    package Scheduling is new Command_Scheduling(Service_Command_Name_Type);
@@ -155,6 +164,12 @@ begin
       Service_Type_Value := new String'(Get_Value(Result(Service_Type), 1));
    else
       Service_Type_Value := Default_Service_Type'Access;
+   end if;
+
+   if Result(UUID).Is_Set then
+      UUID_Value := new String'(Get_Value(Result(UUID), 1));
+   else
+      UUID_Value := Default_UUID'Access;
    end if;
 
    if not Result(Batch).Is_Set then
