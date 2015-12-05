@@ -23,8 +23,6 @@ with Ada.Strings.Fixed;
 with Ada.Exceptions;
 with Ada.Containers.Vectors;
 
-with Gnat.Sockets;
-
 with SSDP.Utils;
 
 package body SSDP.Service_Provider is
@@ -152,7 +150,8 @@ package body SSDP.Service_Provider is
 
    procedure M_Search_Response(Device: in SSDP_Service;
 			       USN_Requester: in String;
-			       Other_Headers: in Message_Header_Array) is
+			       Other_Headers: in Message_Header_Array;
+			       To: in Gnat.Sockets.Sock_Addr_Type) is
       Required_Part, USN_Variable_Part: Unbounded_String;
    begin
       if Device.Service_Type = "" then raise Header_Malformed
@@ -190,7 +189,7 @@ package body SSDP.Service_Provider is
 		  Device.Expires & To_US(EOL));
       end if;
 
-      Send_Message(Create_Message(To_String(Required_Part), Other_Headers));
+      Send_Message(Create_Message(To_String(Required_Part), Other_Headers), To);
    end M_Search_Response;
 
    procedure Notify_Alive(Device: in SSDP_Service;
@@ -341,7 +340,7 @@ package body SSDP.Service_Provider is
 			     To_String(Devices(I).Universal_Serial_Number) &
 			     " avec: " & To_String(Devices(I).Cache_Control));
 		  M_Search_Response(Devices(I), To_String(USN_M_Search),
-				    (1 => To_US("Que-dale:rien")));
+				    (1 => To_US("Que-dale:rien")), To => Addr);
 	       end loop;
 	    exception
 	       when E: Header_Malformed => Pl_Debug(Exception_Message(E));
@@ -375,6 +374,7 @@ package body SSDP.Service_Provider is
 	 when Ex: SSDP_Message_Malformed =>
 	    Pl_Debug(Exception_Name(Ex) & ": " & Exception_Message(Ex));
       end Parse_Message;
+
    begin
       Set_Socket_Option(Global_Network_Settings.Socket(Multicast),
 			Ip_Protocol_For_Ip_Level, (Multicast_Loop, True));

@@ -17,6 +17,8 @@
 --  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA --
 --------------------------------------------------------------------------------
 
+with Gnat.Sockets;
+
 package SSDP.Service_Provider is
 
    function To_US(Str: String) return Unbounded_String
@@ -31,7 +33,8 @@ package SSDP.Service_Provider is
 
    procedure M_Search_Response(Device: in SSDP_Service;
 			       USN_Requester: in String;
-			       Other_Headers: in Message_Header_Array);
+			       Other_Headers: in Message_Header_Array;
+			       To: in Gnat.Sockets.Sock_Addr_Type);
 
    procedure Notify_Alive(Device: in SSDP_Service;
 			  Other_Headers: in Message_Header_Array);

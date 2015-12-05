@@ -142,6 +142,18 @@ package body SSDP.Utils is
       String'Write(Global_Network_Settings.Channel, Message);
    end Send_Message;
 
+   procedure Send_Message(Message: in String; Address: in Sock_Addr_Type) is
+      Channel: Stream_Access;
+   begin
+      if Global_Network_Settings.Is_Down then
+	 Set_Networking;
+      end if;
+
+      Channel := Stream(Global_Network_Settings.Socket(Unicast), Address);
+
+      String'Write(Channel, Message);
+   end Send_Message;
+
    function Parse_Lines(Message: in String) return Line_Array is
       use Ada.Strings.Fixed;
 

@@ -69,6 +69,8 @@ private package SSDP.Utils is
 
    procedure Send_Message(Message: in String);
 
+   procedure Send_Message(Message: in String; Address: in Sock_Addr_Type);
+
    procedure Set_Networking;
 
    function Parse_Lines(Message: in String) return Line_Array;
