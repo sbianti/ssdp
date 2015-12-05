@@ -95,24 +95,7 @@ procedure Test_Service is
 
    EOL: constant Character := Character'Val(10);
 
-   Help_Section: constant Unbounded_String := To_US("Example:");
-
-   Example_Value: constant array(Test_Options) of Unbounded_String :=
-     (Batch => To_US("""alive,5,1.5,4.0 sleep,12.0 alive,3,2.0 byebye,2"""),
-      Service_Type => To_US(Default_Service_Type),
-      Bye_Bye_On_Exit => To_US("2"),
-      others => Null_Unbounded_String
-     );
-
-   Description_Value: constant array(Test_Options) of Unbounded_String :=
-     (To_US("Five ALIVE sent with a random delay between 1”5 and 4”" & EOL &
-	      "followed by a delay of 12”" & EOL &
-	      "followed by three ALIVE spaced by a fix duration of 2”" & EOL &
-	      "followed by two BYEBYE messages sent without delay"),
-      To_US("The device service type to search for " &
-	      "(previous value is the default)"),
-      To_US("One, or many bye-byes are sent when exiting normaly"),
-      others => Null_Unbounded_String);
+   Help_Section: constant Unbounded_String := To_US("Options:");
 
    Help_Header: constant String :=
      "   Test program for SSDP services API" & EOL & EOL &
@@ -134,20 +117,27 @@ procedure Test_Service is
      (Batch =>
 	(Short_Name => No_Short_Name,
 	 Needs_Value => Yes,
-	 Short_Description => Description_Value(Batch),
-	 Value_Form => Example_Value(Batch)),
+	 Short_Description =>
+	   To_US("Five ALIVE sent with a random delay between 1”5 and 4”" &
+		   EOL & "followed by a delay of 12”" & EOL &
+		   "followed by three ALIVE spaced by a fix duration of 2”" &
+		   EOL & "followed by two BYEBYE messages sent without delay"),
+	 Value_Form =>
+	   To_US("""alive,5,1.5,4.0 sleep,12.0 alive,3,2.0 byebye,2""")),
 
       Service_Type =>
 	(Short_Name => 't',
 	 Needs_Value => Yes,
-	 Short_Description => Description_Value(Service_Type),
-	 Value_Form => Example_Value(Service_Type)),
+	 Short_Description => To_US("The device service type to search for " &
+				      "(previous value is the default)"),
+	 Value_Form => To_US(Default_Service_Type)),
 
       Bye_Bye_On_Exit =>
 	(Short_Name => 'b',
 	 Needs_Value => Optional,
-	 Short_Description => Description_Value(Bye_Bye_On_Exit),
-	 Value_Form => Example_Value(Bye_Bye_On_Exit)),
+	 Short_Description =>
+	   To_US("One, or many bye-byes are sent when exiting normaly"),
+	 Value_Form => To_US("2")),
 
       UUID =>
 	(Short_Name => 'i',

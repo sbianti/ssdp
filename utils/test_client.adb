@@ -75,21 +75,7 @@ procedure Test_Client is
 
    EOL: constant Character := Character'Val(10);
 
-   Help_Section: constant Unbounded_String := To_US("Example:");
-
-   Example_Value: constant array(Test_Options) of Unbounded_String :=
-     (To_US("""discover,3,0.5,2.5 sleep,10.0 discover,3,1.0,3.0"""),
-      To_US(Default_Service_Type),
-      others => Null_Unbounded_String);
-
-   Description_Value: constant array(Test_Options) of Unbounded_String :=
-     (To_US("Three DISCOVER sent with a random delay between 0”5 and 2”5" &
-	      EOL & "followed by a delay of 10”" & EOL &
-	      "followed by three DISCOVER spaced by a random duration " &
-	      "between 1” and 3”"),
-      To_US("The device service type to search for " &
-	      "(previous value is the default)"),
-      others => Null_Unbounded_String);
+   Help_Section: constant Unbounded_String := To_US("Options:");
 
    Help_Header: constant String :=
      "   Test program for SSDP clients API" & EOL & EOL &
@@ -111,14 +97,20 @@ procedure Test_Client is
      (Batch =>
 	(Short_Name => No_Short_Name,
 	 Needs_Value => Yes,
-	 Short_Description => Description_Value(Batch),
-	 Value_Form => Example_Value(Batch)),
+	 Value_Form =>
+	   To_US("""discover,3,0.5,2.5 sleep,10.0 discover,3,1.0,3.0"""),
+	 Short_Description =>
+	   To_US("Three DISCOVER sent with a random delay between 0”5 and 2”5" &
+		   EOL & "followed by a delay of 10”" & EOL &
+		   "followed by three DISCOVER spaced by a random duration " &
+		   "between 1” and 3”")),
 
       Service_Type =>
 	(Short_Name => 't',
 	 Needs_Value => Yes,
-	 Short_Description => Description_Value(Service_Type),
-	 Value_Form => Example_Value(Service_Type)),
+	 Value_Form => To_US(Default_Service_Type),
+	 Short_Description => To_US("The device service type to search for " &
+				      "(previous value is the default)")),
 
       UUID =>
 	(Short_Name => 'i',
