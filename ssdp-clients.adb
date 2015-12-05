@@ -119,14 +119,13 @@ package body SSDP.Clients is
 
 	    Device: Device_Type;
 	    NTS_Line: Natural := 0;
-	    Posn_USN, Posn_NT, Posn_NTS: Natural;
-	    First, Last: Natural;
+	    Posn, First, Last: Natural;
 	 begin
 	    for I in Lines'Range loop
-	       Posn_USN := Index(To_Upper(Lines(I).all), "USN:");
-	       if Posn_USN > 1 then raise SSDP_Message_Malformed
+	       Posn := Index(To_Upper(Lines(I).all), "USN:");
+	       if Posn > 1 then raise SSDP_Message_Malformed
 		 with "USN doesn't begin at character 0";
-	       elsif Posn_USN = 1 then
+	       elsif Posn = 1 then
 		  First := Lines(I)'First + 4;
 		  Last := Lines(I)'Last;
 		  Device.Universal_Serial_Number :=
@@ -134,10 +133,10 @@ package body SSDP.Clients is
 		  goto Continue;
 	       end if;
 
-	       Posn_NT := Index(To_Upper(Lines(I).all), "NT:");
-	       if Posn_NT > 1 then raise SSDP_Message_Malformed
+	       Posn := Index(To_Upper(Lines(I).all), "NT:");
+	       if Posn > 1 then raise SSDP_Message_Malformed
 		 with "NT doesn't begin at character 0";
-	       elsif Posn_NT = 1 then
+	       elsif Posn = 1 then
 		  First := Lines(I)'First + 3;
 		  Last := Lines(I)'Last;
 		  Device.Service_Type :=
@@ -145,10 +144,10 @@ package body SSDP.Clients is
 		  goto Continue;
 	       end if;
 
-	       Posn_NTS := Index(To_Upper(Lines(I).all), "NTS:");
-	       if Posn_NTS > 1 then raise SSDP_Message_Malformed
+	       Posn := Index(To_Upper(Lines(I).all), "NTS:");
+	       if Posn > 1 then raise SSDP_Message_Malformed
 		 with "NTS doesn't begin at character 0";
-	       elsif Posn_NTS = 1 then
+	       elsif Posn = 1 then
 		  NTS_Line := I;
 		  goto Continue;
 	       end if;
@@ -217,31 +216,29 @@ package body SSDP.Clients is
 	 end Get_Notify_Info;
 
 	 Lines: Line_Array := Parse_Lines(Message);
-	 Posn_M_SEARCH, Posn_Notify, Posn_Reply_M_SEARCH: Natural;
+	 Posn: Natural;
       begin
-	 Posn_M_SEARCH := Index(To_Upper(Lines(1).all),
-				M_Search_Star_Line);
-	 if Posn_M_SEARCH > 1 then raise SSDP_Message_Malformed
+	 Posn := Index(To_Upper(Lines(1).all), M_Search_Star_Line);
+	 if Posn > 1 then raise SSDP_Message_Malformed
 	   with "M-SEARCH line doesn't begin at character 0";
-	 elsif Posn_M_SEARCH = 1 then
+	 elsif Posn = 1 then
 	    Pl_Debug("M-search received");
 	    return;
 	 end if;
 
-	 Posn_Notify := Index(To_Upper(Lines(1).all), Notify_Line);
-	 if Posn_Notify > 1 then raise SSDP_Message_Malformed
+	 Posn := Index(To_Upper(Lines(1).all), Notify_Line);
+	 if Posn > 1 then raise SSDP_Message_Malformed
 	   with "Notify line doesn't begin at character 0";
-	 elsif Posn_Notify = 1 then
+	 elsif Posn = 1 then
 	    Pl_Debug("Notify received");
 	    Get_Notify_Info(Lines(2..Lines'Last));
 	    return;
 	 end if;
 
-	 Posn_Reply_M_SEARCH := Index(To_Upper(Lines(1).all),
-				      Status_Line);
-	 if Posn_Reply_M_SEARCH > 1 then raise SSDP_Message_Malformed
+	 Posn := Index(To_Upper(Lines(1).all), Status_Line);
+	 if Posn > 1 then raise SSDP_Message_Malformed
 	   with "Reply to M-SEARCH line doesn't begin at character 0";
-	 elsif Posn_Reply_M_SEARCH = 1 then
+	 elsif Posn = 1 then
 	    Pl_Debug("Reply to M-SEARCH received");
 	    return;
 	 end if;
