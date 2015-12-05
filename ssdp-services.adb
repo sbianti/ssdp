@@ -42,7 +42,8 @@ package body SSDP.Services is
       Devices: Device_Array_Type(1..Device_Vector.Length);
    begin
       for I in 1..Device_Vector.Length loop
-	 if Device_Vector.Element(I).Service_Type = To_US(Service_Type) then
+	 if Service_Type = "ssdp:all" or else
+	   Device_Vector.Element(I).Service_Type = To_US(Service_Type) then
 	    Count := Count + 1;
 	    Devices(Count) := Device_Vector.Element(I);
 	 end if;
