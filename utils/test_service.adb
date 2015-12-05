@@ -83,7 +83,7 @@ procedure Test_Service is
       Stop_Listening;
    end Default_Scheduling;
 
-   type Test_Options is (Batch, Service_Type);
+   type Test_Options is (Batch, Service_Type, Bye_Bye_On_Exit);
 
    package Get_Test_Options is new Get_Options(Test_Options);
    use Get_Test_Options;
@@ -94,7 +94,9 @@ procedure Test_Service is
 
    Example_Value: constant array(Test_Options) of Unbounded_String :=
      (To_US("""alive,5,1.5,4.0 sleep,12.0 alive,3,1.0,3.0 byebye,2"""),
-      To_US(Default_Service_Type));
+      To_US(Default_Service_Type),
+      To_US("2")
+     );
 
    Description_Value: constant array(Test_Options) of Unbounded_String :=
      (To_US("Five ALIVE sent with a random delay between 1""5 and 4""" & EOL &
@@ -103,12 +105,14 @@ procedure Test_Service is
 	      " 1"" and 3""" & EOL &
 	      "followed by two BYEBYE messages sent without delay"),
       To_US("The device service type to search for " &
-	      "(previous value is the default)"));
+	      "(previous value is the default)"),
+      To_US("One, or many bye-byes are sent when exiting normaly"));
 
    Help_Header: constant String :=
      "   Test program for service provider API" & EOL & EOL &
      "   usage: " & Command_Name &
-     " [--batch «batch_line»][--service_type=oven:micro_wave]" & EOL & EOL &
+     " [--batch «batch_line»][--service_type=oven:micro_wave]" &
+     "[--bye_bye_on_exit]" & EOL & EOL &
      "     batch_line ≡ command [command ]*" & EOL &
      "     command ≡ command_name[,occurence_number[,random_time_range]" &
      "|[,fix_delay]]" & EOL &
@@ -131,14 +135,19 @@ procedure Test_Service is
 	(Short_Name => 't',
 	 Needs_Value => Yes,
 	 Short_Description => Description_Value(Service_Type),
-	 Value_Form => Example_Value(Service_Type))
+	 Value_Form => Example_Value(Service_Type)),
+
+      Bye_Bye_On_Exit =>
+	(Short_Name => 'b',
+	 Needs_Value => Optional,
+	 Short_Description => Description_Value(Bye_Bye_On_Exit),
+	 Value_Form => Example_Value(Bye_Bye_On_Exit))
      );
 
    package Scheduling is new Command_Scheduling(Provider_Command_Name_Type);
    use Scheduling;
 
    Schedule: Schedule_Type;
-
 begin
    Result := Parse(Setting, Help_Header, "", Help_Sections =>
 		     (Batch => Help_Section, others => Null_Unbounded_String));
@@ -162,6 +171,43 @@ begin
 
       -- Waiting for user interaction:
       Ada.Text_IO.Get_Line(Str, Lg);
+
+      if Result(Bye_Bye_On_Exit).Is_Set then
+	 declare
+	    package Natural_IO is new Ada.Text_IO.Integer_IO(Positive);
+
+	    Bye_Bye_Value: String := Get_Value(Result(Bye_Bye_On_Exit), 1);
+	    Bye_Bye_Number: Positive;
+	    Last: Natural;
+	 begin
+
+	    if Bye_Bye_Value = "" then
+	       Bye_Bye_Number := 1;
+	    else
+	       Natural_IO.Get(Bye_Bye_Value, Bye_Bye_Number, Last);
+
+	       if Bye_Bye_Number > 30 then
+		  Pl_Warning("Bye-Bye number limited to 30 to avoid flooding");
+		  Bye_Bye_Number := 30;
+	       end if;
+	    end if;
+
+	    Pl_Debug("Sending" & Bye_Bye_Number'Img & " final ByeBye");
+	    for I in 1..Bye_Bye_Number loop
+	       SSDP.Services.Notify_Bye_Bye(Device);
+	    end loop;
+
+	 exception
+	    when E: Ada.Text_IO.Data_Error =>
+	       Pl_Error(Exception_Name(E) & ": Bad bye_bye value '" &
+			  Bye_Bye_Value & "' should be a positive number." &
+			  " Sending one ByeBye");
+	       SSDP.Services.Notify_Bye_Bye(Device);
+	    when E: others =>
+	       Pl_Debug(Exception_Information(E));
+	 end;
+      end if;
+
       Services.Stop_Listening;
    end if;
 
