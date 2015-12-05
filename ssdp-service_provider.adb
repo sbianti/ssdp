@@ -30,18 +30,16 @@ with SSDP.Utils;
 package body SSDP.Service_Provider is
    use SSDP.Utils, Ada.Containers;
 
-   subtype SPD_Type is SSDP_Service;
-   -- Each service_provider initialized has its USN kept in this list
-   -- this allows to know if a discover message should be responded
-   -- knowing its service_type.
+   -- Each service initialized is kept in this list, this allow to kown
+   -- if a discover message should be responded knowing its service_type.
    subtype Device_Count_Type is Count_Type range 1..100;
-   package Device_Vectors is new Vectors(Device_Count_Type, SPD_Type);
+   package Device_Vectors is new Vectors(Device_Count_Type, SSDP_Service);
    Device_Vector: Device_Vectors.Vector;
 
-   type Device_Type_Array is array (Device_Count_Type range <>) of SPD_Type;
+   type Device_Array_Type is array (Device_Count_Type range <>) of SSDP_Service;
 
    function Matching_Devices(Service_Type: in String)
-			    return Device_Type_Array is
+			    return Device_Array_Type is
       Count: Device_Count_Type'Base := 0;
    begin
       for I in 1..Device_Vector.Length loop
@@ -51,7 +49,7 @@ package body SSDP.Service_Provider is
       end loop;
 
       declare
-	 Devices: Device_Type_Array(1..Count);
+	 Devices: Device_Array_Type(1..Count);
 	 N: Device_Count_Type := 1;
       begin
 	 if Count = 0 then
@@ -132,6 +130,7 @@ package body SSDP.Service_Provider is
 		 To_US(Cache_Control), To_US(Expires));
 
       Device_Vector.Append(Device);
+
       Pl_Debug("Adding service:" & Universal_Serial_Number & " / " &
 		 Service_Type);
 
@@ -310,7 +309,7 @@ package body SSDP.Service_Provider is
 	    Last := Lines(ST_Line)'Last;
 
 	    declare
-	       Devices: Device_Type_Array :=
+	       Devices: Device_Array_Type :=
 		 Matching_Devices(Trim(Lines(ST_Line)(First..Last), Both));
 	       S_Line_First: Natural;
 	       USN_M_Search: Unbounded_String;
