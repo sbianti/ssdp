@@ -39,30 +39,16 @@ package body SSDP.Services is
    function Matching_Devices(Service_Type: in String)
 			    return Device_Array_Type is
       Count: Device_Count_Type'Base := 0;
+      Devices: Device_Array_Type(1..Device_Vector.Length);
    begin
       for I in 1..Device_Vector.Length loop
 	 if Device_Vector.Element(I).Service_Type = To_US(Service_Type) then
 	    Count := Count + 1;
+	    Devices(Count) := Device_Vector.Element(I);
 	 end if;
       end loop;
 
-      declare
-	 Devices: Device_Array_Type(1..Count);
-	 N: Device_Count_Type := 1;
-      begin
-	 if Count = 0 then
-	    return Devices;
-	 end if;
-
-	 for I in 1..Device_Vector.Length loop
-	    if Device_Vector.Element(I).Service_Type = To_US(Service_Type) then
-	       Devices(N) := Device_Vector.Element(I);
-	       N := N + 1;
-	    end if;
-	 end loop;
-
-	 return Devices;
-      end;
+      return Devices(1..Count);
    end Matching_Devices;
 
    procedure Remove_Service(Service: in SSDP_Service) is
