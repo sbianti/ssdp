@@ -306,8 +306,7 @@ package body SSDP.Command_Scheduling is
 			when Alive =>
 			   Pl_Debug("Alive" & N'Img & " /" &
 				      Schedule.Element(I).Number'Img);
-			   Notify_Alive(Service_Provider_Device_Type(Device),
-					Header);
+			   Notify_Alive(SSDP_Service(Device), Header);
 
 			when Discover =>
 			   Pl_Debug("Discover" & N'Img & " /" &
@@ -317,7 +316,7 @@ package body SSDP.Command_Scheduling is
 			when Bye_Bye =>
 			   Pl_Debug("Bye bye" & N'Img & " /" &
 				      Schedule.Element(I).Number'Img);
-			   Notify_Bye_Bye(Service_Provider_Device_Type(Device));
+			   Notify_Bye_Bye(SSDP_Service(Device));
 
 			when others => null;
 		     end case;

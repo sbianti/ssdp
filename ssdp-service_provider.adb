@@ -30,7 +30,7 @@ with SSDP.Utils;
 package body SSDP.Service_Provider is
    use SSDP.Utils, Ada.Containers;
 
-   subtype SPD_Type is Service_Provider_Device_Type;
+   subtype SPD_Type is SSDP_Service;
    -- Each service_provider initialized has its USN kept in this list
    -- this allows to know if a discover message should be responded
    -- knowing its service_type.
@@ -88,7 +88,7 @@ package body SSDP.Service_Provider is
    function Initialize_Device(Service_Type, Universal_Serial_Number,
 				Location, AL, -- only one is required
 				Cache_Control, Expires: String) -- dito
-			     return Service_Provider_Device_Type is
+			     return SSDP_Service is
 
       function Service_Already_Exists(USN, ST: in String) return Boolean is
       begin
@@ -102,7 +102,7 @@ package body SSDP.Service_Provider is
 	 return False;
       end Service_Already_Exists;
 
-      Device: Service_Provider_Device_Type;
+      Device: SSDP_Service;
    begin
       if Service_Type = "" or Universal_Serial_Number = "" then
 	 raise Header_Malformed
@@ -138,7 +138,7 @@ package body SSDP.Service_Provider is
       return Device;
    end Initialize_Device;
 
-   procedure M_Search_Response(Device: in Service_Provider_Device_Type;
+   procedure M_Search_Response(Device: in SSDP_Service;
 			       USN_Requester: in String;
 			       Other_Headers: in Message_Header_Array) is
       Required_Part, USN_Variable_Part: Unbounded_String;
@@ -181,7 +181,7 @@ package body SSDP.Service_Provider is
       Send_Message(Create_Message(To_String(Required_Part), Other_Headers));
    end M_Search_Response;
 
-   procedure Notify_Alive(Device: in Service_Provider_Device_Type;
+   procedure Notify_Alive(Device: in SSDP_Service;
 			  Other_Headers: in Message_Header_Array) is
       Required_Part: Unbounded_String;
    begin
@@ -230,7 +230,7 @@ package body SSDP.Service_Provider is
       Send_Message(Create_Message(To_String(Required_Part), Other_Headers));
    end Notify_Alive;
 
-   procedure Notify_Bye_Bye(Device: in Service_Provider_Device_Type) is
+   procedure Notify_Bye_Bye(Device: in SSDP_Service) is
       Start_Line: constant String := Notify_Line & EOL;
    begin
       if Device.Service_Type = "" then raise Header_Malformed

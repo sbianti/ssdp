@@ -29,9 +29,9 @@ with Get_Options; --https://github.com/sbianti/GetOptions
 procedure Test_Service_Provider is
    use SSDP, Ada.Exceptions, Test_Utils;
 
-   subtype Service_Provider_Device_Type is Service_Provider.Service_Provider_Device_Type;
+   subtype SSDP_Service is Service_Provider.SSDP_Service;
 
-   Device: Service_Provider_Device_Type;
+   Device: SSDP_Service;
 
    Notify_Header: SSDP.Message_Header_Array :=
      (Service_Provider.To_US("Affaires: dentifrice"),
@@ -49,7 +49,7 @@ procedure Test_Service_Provider is
 
    Lg: Natural;
 
-   function Default_Initialization return Service_Provider_Device_Type is
+   function Default_Initialization return SSDP_Service is
       use SSDP.Service_Provider;
    begin
       return Initialize_Device(Service_Type => Service_Type_Value.all,
