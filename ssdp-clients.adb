@@ -123,9 +123,7 @@ package body SSDP.Clients is
 	 begin
 	    for I in Lines'Range loop
 	       Posn := Index(To_Upper(Lines(I).all), "USN:");
-	       if Posn > 1 then raise SSDP_Message_Malformed
-		 with "USN doesn't begin at character 0";
-	       elsif Posn = 1 then
+	       if Posn = 1 then
 		  First := Lines(I)'First + 4;
 		  Last := Lines(I)'Last;
 		  Device.Universal_Serial_Number :=
@@ -134,9 +132,7 @@ package body SSDP.Clients is
 	       end if;
 
 	       Posn := Index(To_Upper(Lines(I).all), "NT:");
-	       if Posn > 1 then raise SSDP_Message_Malformed
-		 with "NT doesn't begin at character 0";
-	       elsif Posn = 1 then
+	       if Posn = 1 then
 		  First := Lines(I)'First + 3;
 		  Last := Lines(I)'Last;
 		  Device.Service_Type :=
@@ -145,9 +141,7 @@ package body SSDP.Clients is
 	       end if;
 
 	       Posn := Index(To_Upper(Lines(I).all), "NTS:");
-	       if Posn > 1 then raise SSDP_Message_Malformed
-		 with "NTS doesn't begin at character 0";
-	       elsif Posn = 1 then
+	       if Posn = 1 then
 		  NTS_Line := I;
 		  goto Continue;
 	       end if;
