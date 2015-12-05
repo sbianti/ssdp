@@ -34,12 +34,15 @@ private package SSDP.Utils is
    Multicast_Address: constant String := "239.255.255.250";
    Multicast_Port: constant Gnat.Sockets.Port_Type := 1900;
 
+   type Connection_Type is (Multicast, Unicast);
+   type Socket_Array is array (Connection_Type) of Socket_Type;
+
    type Network_Settings is record
       Is_Listening: Boolean := False;
       Is_Down: Boolean := True;
-      Socket: Socket_Type;
-      Address: Sock_Addr_Type;
-      Channel: Stream_Access;
+      Socket: Socket_Array;
+      Local_Address: Sock_Addr_Type;
+      Channel: Stream_Access; -- only for multicast emission
    end record;
 
    Global_Network_Settings: Network_Settings;

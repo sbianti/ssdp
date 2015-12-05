@@ -101,23 +101,33 @@ package body SSDP.Utils is
 
    procedure Set_Networking is
       GNS: Network_Settings renames Global_Network_Settings;
+      Multicast_Addr: Sock_Addr_Type;
    begin
       if not GNS.Is_Down then
 	 return;
       end if;
 
       -- is DOWN and NOT listening
-      GNS.Address.Addr := Inet_Addr(Multicast_Address);
-      GNS.Address.Port := Multicast_Port;
+      Create_Socket(GNS.Socket(Multicast), Family_Inet, Socket_Datagram);
 
-      Create_Socket(GNS.Socket, Family_Inet, Socket_Datagram);
-      Set_Socket_Option(GNS.Socket, Socket_Level, (Reuse_Address, True));
-      Set_Socket_Option(GNS.Socket, Ip_Protocol_For_Ip_Level,
-			(Add_Membership, GNS.Address.Addr, Any_Inet_Addr));
+      Set_Socket_Option(GNS.Socket(Multicast), Socket_Level,
+			(Reuse_Address, True));
 
-      Bind_Socket(GNS.Socket, GNS.Address);
+      Multicast_Addr.Addr := Inet_Addr(Multicast_Address);
+      Multicast_Addr.Port := Multicast_Port;
 
-      GNS.Channel := Stream(GNS.Socket, GNS.Address);
+      Set_Socket_Option(GNS.Socket(Multicast), Ip_Protocol_For_Ip_Level,
+			(Add_Membership, Multicast_Addr.Addr, Any_Inet_Addr));
+
+      Bind_Socket(GNS.Socket(Multicast), Multicast_Addr);
+
+      Create_Socket(GNS.Socket(Unicast), Family_Inet, Socket_Datagram);
+      GNS.Local_Address.Addr := Any_Inet_Addr;
+      GNS.Local_Address.Port := Any_Port;
+
+      Bind_Socket(GNS.Socket(Unicast), GNS.Local_Address);
+      GNS.Channel := Stream(GNS.Socket(Unicast), Multicast_Addr);
+
       GNS.Is_Down := False;
 
       -- UP but still NOT listening
@@ -183,16 +193,19 @@ package body SSDP.Utils is
    end Start_Listening;
 
    procedure Stop_Listening is
-      Address: Sock_Addr_Type renames Global_Network_Settings.Address;
+      Addr: Inet_Addr_Type := Inet_Addr(Multicast_Address);
    begin
       abort Listener;
 
       if Global_Network_Settings.Is_Listening then
-	 Set_Socket_Option(Global_Network_Settings.Socket,
+	 Set_Socket_Option(Global_Network_Settings.Socket(Multicast),
 			   Ip_Protocol_For_Ip_Level,
-			   (Drop_Membership, Address.Addr, Any_Inet_Addr));
-	 Close_Socket(Global_Network_Settings.Socket);
+			   (Drop_Membership, Addr, Any_Inet_Addr));
+
+	 Close_Socket(Global_Network_Settings.Socket(Multicast));
+	 Close_Socket(Global_Network_Settings.Socket(Unicast));
 	 Free(Global_Network_Settings.Channel);
+
 	 Global_Network_Settings.Is_Listening := False;
       end if;
    end Stop_Listening;

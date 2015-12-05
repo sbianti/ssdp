@@ -376,12 +376,13 @@ package body SSDP.Service_Provider is
 	    Pl_Debug(Exception_Name(Ex) & ": " & Exception_Message(Ex));
       end Parse_Message;
    begin
-      Set_Socket_Option(Global_Network_Settings.Socket,
+      Set_Socket_Option(Global_Network_Settings.Socket(Multicast),
 			Ip_Protocol_For_Ip_Level, (Multicast_Loop, True));
 
       loop
 	 begin
-	    Receive_Socket(Global_Network_Settings.Socket, Msg, Last, Addr);
+	    Receive_Socket(Global_Network_Settings.Socket(Multicast),
+			   Msg, Last, Addr);
 	    Pl_Debug("____________________________________________________");
 	    Pl_Debug("From " & Image(Addr));
 	    Parse_Message(To_String(Msg(1..Last)));
