@@ -190,8 +190,8 @@ package body SSDP.Clients is
 		     for I in 1..Services.Length loop
 			if Services.Element(I).Service_Type = NT and
 			  Services.Element(I).Universal_Serial_Number = USN then
-			   Pl_Debug("Removing service: " & To_String(USN) & ' ' &
-				      To_String(NT));
+			   Pl_Debug("Removing service: " & To_String(USN) &
+				      ' ' & To_String(NT));
 			   Services.Delete(I);
 			   return;
 			end if;

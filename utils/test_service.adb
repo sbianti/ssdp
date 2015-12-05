@@ -93,16 +93,15 @@ procedure Test_Service is
    Help_Section: constant Unbounded_String := To_US("Example:");
 
    Example_Value: constant array(Test_Options) of Unbounded_String :=
-     (To_US("""alive,5,1.5,4.0 sleep,12.0 alive,3,1.0,3.0 byebye,2"""),
+     (To_US("""alive,5,1.5,4.0 sleep,12.0 alive,3,2.0 byebye,2"""),
       To_US(Default_Service_Type),
       To_US("2")
      );
 
    Description_Value: constant array(Test_Options) of Unbounded_String :=
-     (To_US("Five ALIVE sent with a random delay between 1""5 and 4""" & EOL &
-	      "followed by a delay of 12""" & EOL &
-	      "followed by three ALIVE spaced by a random duration between " &
-	      " 1"" and 3""" & EOL &
+     (To_US("Five ALIVE sent with a random delay between 1”5 and 4”" & EOL &
+	      "followed by a delay of 12”" & EOL &
+	      "followed by three ALIVE spaced by a fix duration of 2”" & EOL &
 	      "followed by two BYEBYE messages sent without delay"),
       To_US("The device service type to search for " &
 	      "(previous value is the default)"),
