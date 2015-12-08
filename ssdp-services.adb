@@ -103,6 +103,26 @@ package body SSDP.Services is
       return Device;
    end Initialize;
 
+   function Get_USN(Service: in SSDP_Service) return Unbounded_String is
+   begin
+      return Service.Universal_Serial_Number;
+   end Get_USN;
+
+   function Get_NT(Service: in SSDP_Service) return Unbounded_String is
+   begin
+      return Service.Service_Type;
+   end Get_NT;
+
+   procedure Set_USN(Service: in out SSDP_Service; USN: in Unbounded_String) is
+   begin
+      Service.Universal_Serial_Number := USN;
+   end Set_USN;
+
+   procedure Set_NT(Service: in out SSDP_Service; NT: in Unbounded_String) is
+   begin
+      Service.Service_Type := NT;
+   end Set_NT;
+
    procedure M_Search_Response
      (Device: in SSDP_Service;
       USN_Requester: in String;

@@ -40,6 +40,14 @@ package SSDP.Services is
 		       Cache_Control: in Natural := 0) -- dito
 		      return SSDP_Service;
 
+   function Get_USN(Service: in SSDP_Service) return Unbounded_String;
+
+   function Get_NT(Service: in SSDP_Service) return Unbounded_String;
+
+   procedure Set_USN(Service: in out SSDP_Service; USN: in Unbounded_String);
+
+   procedure Set_NT(Service: in out SSDP_Service; NT: in Unbounded_String);
+
    procedure M_Search_Response
      (Device: in SSDP_Service;
       USN_Requester: in String;
