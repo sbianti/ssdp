@@ -96,7 +96,7 @@ package body SSDP.Services is
    procedure M_Search_Response(Device: in SSDP_Service;
 			       USN_Requester: in String;
 			       Other_Headers: in Message_Header_Array;
-			       To: in Gnat.Sockets.Sock_Addr_Type) is
+			       To: in Sock_Addr_Type) is
       Required_Part, USN_Variable_Part: Unbounded_String;
    begin
       if Device.Service_Type = "" then raise Header_Malformed

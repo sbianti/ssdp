@@ -24,6 +24,8 @@ package SSDP.Services is
    function To_US(Str: String) return Unbounded_String
      renames To_Unbounded_String;
 
+   subtype Sock_Addr_Type is Gnat.Sockets.Sock_Addr_Type;
+
    type SSDP_Service is new Device_Type with private;
 
    function "=" (Left, Right: in SSDP_Service) return Boolean;
@@ -36,7 +38,7 @@ package SSDP.Services is
    procedure M_Search_Response(Device: in SSDP_Service;
 			       USN_Requester: in String;
 			       Other_Headers: in Message_Header_Array;
-			       To: in Gnat.Sockets.Sock_Addr_Type);
+			       To: in Sock_Addr_Type);
 
    procedure Notify_Alive(Device: in SSDP_Service;
 			  Other_Headers: in Message_Header_Array);
