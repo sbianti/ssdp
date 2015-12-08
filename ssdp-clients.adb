@@ -61,73 +61,6 @@ package body SSDP.Clients is
    end "<";
    package Service_Sorting is new Service_Vectors.Generic_Sorting;
 
-   task Service_Manager is
-      entry Replace_Service(Position: in Service_Count_Type;
-			    Service: in Service_Device_Type);
-      entry Add_Service(Service: in Service_Device_Type);
-      entry Remove_Service(Position: in Service_Count_Type);
-   end Service_Manager;
-
-   task body Service_Manager is
-      Next_Timestamp: Duration;
-
-      function Get_Delay(Timeout: in Time) return Duration is
-      begin
-	 return Timeout - Clock;
-      end Get_Delay;
-
-      pragma Inline_Always(Get_Delay);
-
-      procedure Sort_And_Update is
-      begin
-	 Service_Sorting.Sort(Services);
-	 Next_Timestamp := Get_Delay(Services.First_Element.Expiration);
-	 Pl_Debug("Next timeout:" & Natural(Next_Timestamp)'Img & "s");
-      end Sort_And_Update;
-   begin
-      loop
-	 accept Add_Service(Service: in Service_Device_Type) do
-	    Services.Append(Service);
-	 end Add_Service;
-
-	 Next_Timestamp := Get_Delay(Services.First_Element.Expiration);
-
-	 loop
-	    select
-	       accept Replace_Service(Position: in Service_Count_Type;
-				      Service: in Service_Device_Type) do
-		  Services.Replace_Element(Position, Service);
-	       end Replace_Service;
-	    or
-	       accept Remove_Service(Position: in Service_Count_Type) do
-		  Services.Delete(Position);
-	       end Remove_Service;
-
-	       exit when Services.Length = 0;
-	    or
-	       accept Add_Service(Service: in Service_Device_Type) do
-		  Services.Append(Service);
-	       end Add_Service;
-	    or
-	       delay Next_Timestamp;
-	       Pl_Debug("Timeout for USN=“" & To_String
-			  (Services.First_Element.Universal_Serial_Number) &
-			  "”" & EOL &
-			  "             NT=“" &
-			  To_String(Services.First_Element.Service_Type) & "”");
-
-	       Services.Delete_First;
-
-	       exit when Services.Length = 0;
-
-	       Pl_Debug(Services.Length'Img & " remaining service(s)");
-	    end select;
-
-	    Sort_And_Update;
-	 end loop;
-      end loop;
-   end Service_Manager;
-
    function Initialize_Device(Service_Type, Universal_Serial_Number: in String)
 			     return SSDP_Client is
       Device: SSDP_Client;
@@ -196,6 +129,74 @@ package body SSDP.Clients is
       Addr: Sock_Addr_Type;
 
       type Expiration_Type is (Cache_Control, Expires);
+
+      task Service_Manager is
+	 entry Replace_Service(Position: in Service_Count_Type;
+			       Service: in Service_Device_Type);
+	 entry Add_Service(Service: in Service_Device_Type);
+	 entry Remove_Service(Position: in Service_Count_Type);
+      end Service_Manager;
+
+      task body Service_Manager is
+	 Next_Timestamp: Duration;
+
+	 function Get_Delay(Timeout: in Time) return Duration is
+	 begin
+	    return Timeout - Clock;
+	 end Get_Delay;
+
+	 pragma Inline_Always(Get_Delay);
+
+	 procedure Sort_And_Update is
+	 begin
+	    Service_Sorting.Sort(Services);
+	    Next_Timestamp := Get_Delay(Services.First_Element.Expiration);
+	    Pl_Debug("Next timeout:" & Natural(Next_Timestamp)'Img & "s");
+	 end Sort_And_Update;
+      begin
+	 loop
+	    accept Add_Service(Service: in Service_Device_Type) do
+	       Services.Append(Service);
+	    end Add_Service;
+
+	    Next_Timestamp := Get_Delay(Services.First_Element.Expiration);
+
+	    loop
+	       select
+		  accept Replace_Service(Position: in Service_Count_Type;
+					 Service: in Service_Device_Type) do
+		     Services.Replace_Element(Position, Service);
+		  end Replace_Service;
+	       or
+		  accept Remove_Service(Position: in Service_Count_Type) do
+		     Services.Delete(Position);
+		  end Remove_Service;
+
+		  exit when Services.Length = 0;
+	       or
+		  accept Add_Service(Service: in Service_Device_Type) do
+		     Services.Append(Service);
+		  end Add_Service;
+	       or
+		  delay Next_Timestamp;
+		  Pl_Debug("Timeout for USN=“" & To_String
+			     (Services.First_Element.Universal_Serial_Number) &
+			     "”" & EOL &
+			     "             NT=“" &
+			     To_String(Services.First_Element.Service_Type) &
+			     "”");
+
+		  Services.Delete_First;
+
+		  exit when Services.Length = 0;
+
+		  Pl_Debug(Services.Length'Img & " remaining service(s)");
+	       end select;
+
+	       Sort_And_Update;
+	    end loop;
+	 end loop;
+      end Service_Manager;
 
       function Get_Expiration(Expiration_Header: in Expiration_Type;
 			      Str: in String) return Time is
@@ -565,7 +566,6 @@ package body SSDP.Clients is
 
    procedure Stop_Listening is
    begin
-      abort Service_Manager;
       SSDP.Utils.Stop_Listening;
    end Stop_Listening;
 
