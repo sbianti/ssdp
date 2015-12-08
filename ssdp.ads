@@ -19,8 +19,13 @@
 
 with Ada.Strings.Unbounded;
 
+with Gnat.Sockets;
+
 package SSDP is
    use Ada.Strings.Unbounded;
+
+   Multicast_Address: constant String := "239.255.255.250";
+   Multicast_Port: constant Gnat.Sockets.Port_Type := 1900;
 
    type US_Array is array (Positive range <>) of Unbounded_String;
    Null_US_Array: constant US_Array := (1..0 => Null_Unbounded_String);

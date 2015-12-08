@@ -19,7 +19,6 @@
 
 with Ada.Characters.Latin_1;
 with Ada.Streams;
-with Gnat.Sockets;
 
 private package SSDP.Utils is
    use Ada.Characters, Ada.Streams, Gnat.Sockets;
@@ -30,9 +29,6 @@ private package SSDP.Utils is
    M_Search_Star_Line: constant String := "M-SEARCH * HTTP/1.1";
    Notify_Line: constant String := "NOTIFY * HTTP/1.1";
    Status_Line: constant String := "HTTP/1.1 200 OK";
-
-   Multicast_Address: constant String := "239.255.255.250";
-   Multicast_Port: constant Gnat.Sockets.Port_Type := 1900;
 
    type Connection_Type is (Multicast, Unicast);
    type Socket_Array is array (Connection_Type) of Socket_Type;
