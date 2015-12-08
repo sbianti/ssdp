@@ -35,8 +35,6 @@ procedure Test_Client is
      (Clients.To_US("Toto: inutile:pardon"),
       Clients.To_US("Zak: important:rien"));
 
-   Null_Header: SSDP.Message_Header_Array(1..0);
-
    Default_UUID: aliased constant String :=
      "uuid:0dbcf247-96ca-4d58-b3de-a22cd083125b";
    UUID_Value: access constant String;
@@ -60,7 +58,7 @@ procedure Test_Client is
       Put_Line("First discover sent");
 
       delay 1.0;
-      M_Search(Device, NULL_Header);
+      M_Search(Device, Null_Header_Array);
       Put_Line("Second discover sent");
 
       Get_Line(Str, Lg);

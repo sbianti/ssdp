@@ -47,8 +47,6 @@ procedure Test_Service is
    Default_Lifetime: constant Positive := 600;
    Lifetime_Value: Positive;
 
-   Null_Header: SSDP.Message_Header_Array(1..0);
-
    Str: String(1..10);
 
    Lg: Natural;
@@ -78,7 +76,7 @@ procedure Test_Service is
       Put_Line("Notify sent");
 
       delay 2.5;
-      Notify_Alive(Device, Null_Header);
+      Notify_Alive(Device, Null_Header_Array);
       Put_Line("Second notify sent");
 
       Get_Line(Str, Lg);

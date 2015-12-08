@@ -23,8 +23,11 @@ package SSDP is
    use Ada.Strings.Unbounded;
 
    type US_Array is array (Positive range <>) of Unbounded_String;
+   Null_US_Array: constant US_Array := (1..0 => Null_Unbounded_String);
+
    subtype Location_Array is US_Array;
    subtype Message_Header_Array is US_Array;
+   Null_Header_Array: US_Array renames Null_US_Array;
 
    type Device_Type is abstract tagged private;
 
