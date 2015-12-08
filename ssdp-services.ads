@@ -60,7 +60,8 @@ package SSDP.Services is
 
    procedure Notify_Bye_Bye
      (Device: in SSDP_Service;
-      Other_Headers: in Message_Header_Array := Null_Header_Array);
+      Other_Headers: in Message_Header_Array := Null_Header_Array;
+      Remove: in Boolean := True);
 
    procedure Start_Listening;
 

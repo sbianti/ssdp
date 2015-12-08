@@ -222,7 +222,8 @@ package body SSDP.Services is
 
    procedure Notify_Bye_Bye
      (Device: in SSDP_Service;
-      Other_Headers: in Message_Header_Array := Null_Header_Array) is
+      Other_Headers: in Message_Header_Array := Null_Header_Array;
+      Remove: in Boolean := True) is
 
       Start_Line: constant String := Notify_Line & EOL;
 
@@ -253,7 +254,9 @@ package body SSDP.Services is
 	   with "Header «USN» (Universal Service Type) is missing";
       end if;
 
-      Remove_Service(Device);
+      if Remove then
+	 Remove_Service(Device);
+      end if;
 
       Required_Part := To_US(Start_Line & "NT: ") & Device.Service_Type &
 	To_US(EOL & "USN: ") & Device.Universal_Serial_Number &
