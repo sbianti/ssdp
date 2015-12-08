@@ -372,7 +372,7 @@ package body SSDP.Clients is
 	 if Posn > 1 then raise SSDP_Message_Malformed
 	   with "M-SEARCH line doesn't begin at character 0";
 	 elsif Posn = 1 then
-	    Pl_Debug("M-search received");
+	    -- Just drop received M-search messages
 	    return;
 	 end if;
 
