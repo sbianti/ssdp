@@ -41,7 +41,9 @@ package SSDP.Services is
    procedure Notify_Alive(Device: in SSDP_Service;
 			  Other_Headers: in Message_Header_Array);
 
-   procedure Notify_Bye_Bye(Device: in SSDP_Service);
+   procedure Notify_Bye_Bye
+     (Device: in SSDP_Service;
+      Other_Headers: in Message_Header_Array := Null_Header_Array);
 
    procedure Start_Listening;
 

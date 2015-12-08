@@ -186,7 +186,10 @@ package body SSDP.Services is
       Send_Message(Create_Message(To_String(Required_Part), Other_Headers));
    end Notify_Alive;
 
-   procedure Notify_Bye_Bye(Device: in SSDP_Service) is
+   procedure Notify_Bye_Bye
+     (Device: in SSDP_Service;
+      Other_Headers: in Message_Header_Array := Null_Header_Array) is
+
       Start_Line: constant String := Notify_Line & EOL;
 
       procedure Remove_Service(Service: in SSDP_Service) is
@@ -204,6 +207,8 @@ package body SSDP.Services is
 	 end loop;
       end Remove_Service;
 
+      Required_Part: Unbounded_String;
+
    begin
       if Device.Service_Type = "" then raise Header_Malformed
 	with "Header «NT» (Service Type) is missing";
@@ -216,9 +221,12 @@ package body SSDP.Services is
 
       Remove_Service(Device);
 
-      Send_Message(Start_Line & "NT: " & To_String(Device.Service_Type) & EOL &
-		     "USN: " & To_String(Device.Universal_Serial_Number) & EOL &
-		     "NTS: ssdp:byebye" & EOL & EOL);
+      Required_Part := To_US(Start_Line & "NT: ") & Device.Service_Type &
+	To_US(EOL & "USN: ") & Device.Universal_Serial_Number &
+	To_US(EOL &"NTS: ssdp:byebye" & EOL);
+
+      Send_Message(Create_Message(To_String(Required_Part), Other_Headers));
+
    end Notify_Bye_Bye;
 
    procedure Service_Job is
