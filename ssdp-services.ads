@@ -35,13 +35,15 @@ package SSDP.Services is
 				Cache_Control, Expires: String) -- dito
 			     return SSDP_Service;
 
-   procedure M_Search_Response(Device: in SSDP_Service;
-			       USN_Requester: in String;
-			       Other_Headers: in Message_Header_Array;
-			       To: in Sock_Addr_Type);
+   procedure M_Search_Response
+     (Device: in SSDP_Service;
+      USN_Requester: in String;
+      To: in Sock_Addr_Type;
+      Other_Headers: in Message_Header_Array := Null_Header_Array);
 
-   procedure Notify_Alive(Device: in SSDP_Service;
-			  Other_Headers: in Message_Header_Array);
+   procedure Notify_Alive
+     (Device: in SSDP_Service;
+      Other_Headers: in Message_Header_Array := Null_Header_Array);
 
    procedure Notify_Bye_Bye
      (Device: in SSDP_Service;

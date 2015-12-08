@@ -93,10 +93,12 @@ package body SSDP.Services is
       return Device;
    end Initialize_Device;
 
-   procedure M_Search_Response(Device: in SSDP_Service;
-			       USN_Requester: in String;
-			       Other_Headers: in Message_Header_Array;
-			       To: in Sock_Addr_Type) is
+   procedure M_Search_Response
+     (Device: in SSDP_Service;
+      USN_Requester: in String;
+      To: in Sock_Addr_Type;
+      Other_Headers: in Message_Header_Array := Null_Header_Array) is
+
       Required_Part, USN_Variable_Part: Unbounded_String;
    begin
       if Device.Service_Type = "" then raise Header_Malformed
@@ -137,8 +139,10 @@ package body SSDP.Services is
       Send_Message(Create_Message(To_String(Required_Part), Other_Headers), To);
    end M_Search_Response;
 
-   procedure Notify_Alive(Device: in SSDP_Service;
-			  Other_Headers: in Message_Header_Array) is
+   procedure Notify_Alive
+     (Device: in SSDP_Service;
+      Other_Headers: in Message_Header_Array := Null_Header_Array) is
+
       Required_Part: Unbounded_String;
    begin
       if Device.Service_Type = "" then raise Header_Malformed
@@ -333,7 +337,7 @@ package body SSDP.Services is
 			     " with cache-control: [" &
 			     To_String(Devices(I).Cache_Control) & "]");
 		  M_Search_Response(Devices(I), To_String(USN_M_Search),
-				    (1 => To_US("Que-dale:rien")), To => Addr);
+				    To => Addr);
 	       end loop;
 	    exception
 	       when E: Header_Malformed => Pl_Debug(Exception_Message(E));
