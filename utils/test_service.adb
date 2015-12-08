@@ -31,7 +31,7 @@ procedure Test_Service is
 
    subtype SSDP_Service is Services.SSDP_Service;
 
-   Device: SSDP_Service;
+   Service: SSDP_Service;
 
    Notify_Header: SSDP.Message_Header_Array :=
      (Services.To_US("Affaires: dentifrice"),
@@ -54,34 +54,34 @@ procedure Test_Service is
    function Default_Initialization return SSDP_Service is
       use SSDP.Services;
    begin
-      return Initialize_Device(Service_Type => Service_Type_Value.all,
-			       Universal_Serial_Number => UUID_Value.all,
-			       Location => "",
-			       AL => "<http://halsensortester.mp.intel.com>",
-			       Cache_Control =>
-				 "max-age = " & Lifetime_Value'Img,
-			       Expires => "");
+      return Initialize(Service_Type => Service_Type_Value.all,
+			Universal_Serial_Number => UUID_Value.all,
+			Location => "",
+			AL => "<http://halsensortester.mp.intel.com>",
+			Cache_Control =>
+			  "max-age = " & Lifetime_Value'Img,
+			Expires => "");
    end Default_Initialization;
 
    procedure Default_Scheduling is
       use SSDP.Services, Ada.Text_IO;
    begin
 
-      Device := Default_Initialization;
+      Service := Default_Initialization;
 
       Start_Listening;
 
       delay 0.2;
-      Notify_Alive(Device, Notify_Header);
+      Notify_Alive(Service, Notify_Header);
       Put_Line("Notify sent");
 
       delay 2.5;
-      Notify_Alive(Device, Null_Header_Array);
+      Notify_Alive(Service, Null_Header_Array);
       Put_Line("Second notify sent");
 
       Get_Line(Str, Lg);
       Put_Line("Bye bye !");
-      Notify_Bye_Bye(Device);
+      Notify_Bye_Bye(Service);
 
       Stop_Listening;
    end Default_Scheduling;
@@ -183,13 +183,13 @@ begin
    if not Result(Batch).Is_Set then
       Default_Scheduling;
    else
-      Device := Default_Initialization;
+      Service := Default_Initialization;
 
       Services.Start_Listening;
 
       Schedule := Parse(Get_Value(Result(Batch), 1));
 
-      Batch(Device, Notify_Header, Schedule);
+      Batch(Service, Notify_Header, Schedule);
 
       -- Waiting for user interaction:
       Ada.Text_IO.Get_Line(Str, Lg);
@@ -213,7 +213,7 @@ begin
 
 	    Pl_Debug("Sending" & Bye_Bye_Number'Img & " final ByeBye");
 	    for I in 1..Bye_Bye_Number loop
-	       SSDP.Services.Notify_Bye_Bye(Device);
+	       SSDP.Services.Notify_Bye_Bye(Service);
 	    end loop;
 
 	 exception
@@ -221,7 +221,7 @@ begin
 	       Pl_Error(Exception_Name(E) & ": Bad bye_bye value '" &
 			  Bye_Bye_Value & "' should be a positive number." &
 			  " Sending one ByeBye");
-	       SSDP.Services.Notify_Bye_Bye(Device);
+	       SSDP.Services.Notify_Bye_Bye(Service);
 	    when E: others =>
 	       Pl_Debug(Exception_Information(E));
 	 end;

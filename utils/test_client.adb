@@ -29,7 +29,7 @@ with Get_Options; --https://github.com/sbianti/GetOptions
 procedure Test_Client is
    use SSDP, Ada.Exceptions, Test_Utils;
 
-   Device: Clients.SSDP_Client;
+   Client: Clients.SSDP_Client;
 
    Discover_Header: SSDP.Message_Header_Array :=
      (Clients.To_US("Toto: inutile:pardon"),
@@ -49,16 +49,16 @@ procedure Test_Client is
    procedure Default_Scheduling is
       use SSDP.Clients, Ada.Text_IO;
    begin
-      Device := Initialize_Device(Service_Type_Value.all, UUID_Value.all);
+      Client := Initialize(Service_Type_Value.all, UUID_Value.all);
 
       Start_Listening;
 
       delay 0.5;
-      M_Search(Device, Discover_Header);
+      M_Search(Client, Discover_Header);
       Put_Line("First discover sent");
 
       delay 1.0;
-      M_Search(Device, Null_Header_Array);
+      M_Search(Client, Null_Header_Array);
       Put_Line("Second discover sent");
 
       Get_Line(Str, Lg);
@@ -142,14 +142,13 @@ begin
    if not Result(Batch).Is_Set then
       Default_Scheduling;
    else
-      Device := Clients.Initialize_Device(Service_Type_Value.all,
-					  UUID_Value.all);
+      Client := Clients.Initialize(Service_Type_Value.all, UUID_Value.all);
 
       Clients.Start_Listening;
 
       Schedule := Parse(Get_Value(Result(Batch), 1));
 
-      Batch(Device, Discover_Header, Schedule);
+      Batch(Client, Discover_Header, Schedule);
 
       -- Waiting for user interaction:
       Ada.Text_IO.Get_Line(Str, Lg);

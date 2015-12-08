@@ -40,10 +40,18 @@ package body SSDP.Services is
    package Device_Vectors is new Vectors(Device_Count_Type, SSDP_Service);
    Device_Vector: Device_Vectors.Vector;
 
-   function Initialize_Device(Service_Type, Universal_Serial_Number,
-				Location, AL, -- only one is required
-				Cache_Control, Expires: String) -- dito
-			     return SSDP_Service is
+   function Initialize(Service_Type, Universal_Serial_Number,
+			 Location, Cache_Control: in String)
+		      return SSDP_Service is
+   begin
+      return Initialize(Service_Type, Universal_Serial_Number,
+			Location, "", Cache_Control, "");
+   end Initialize;
+
+   function Initialize(Service_Type, Universal_Serial_Number,
+			 Location, AL, -- only one is required
+			 Cache_Control, Expires: String) -- dito
+		      return SSDP_Service is
 
       function Service_Already_Exists(USN, ST: in String) return Boolean is
       begin
@@ -92,7 +100,7 @@ package body SSDP.Services is
 		 Service_Type);
 
       return Device;
-   end Initialize_Device;
+   end Initialize;
 
    procedure M_Search_Response
      (Device: in SSDP_Service;

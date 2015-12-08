@@ -30,10 +30,14 @@ package SSDP.Services is
 
    function "=" (Left, Right: in SSDP_Service) return Boolean;
 
-   function Initialize_Device(Service_Type, Universal_Serial_Number,
-				Location, AL, -- only one is required
-				Cache_Control, Expires: String) -- dito
-			     return SSDP_Service;
+   function Initialize(Service_Type, Universal_Serial_Number,
+			 Location, Cache_Control: String)
+		      return SSDP_Service;
+
+   function Initialize(Service_Type, Universal_Serial_Number,
+			 Location, AL, -- only one is required
+			 Cache_Control, Expires: String) -- dito
+		      return SSDP_Service;
 
    procedure M_Search_Response
      (Device: in SSDP_Service;
@@ -56,7 +60,13 @@ package SSDP.Services is
    Bad_Service: exception;
 private
    type SSDP_Service is new Device_Type with record
-      Location, AL, -- only one is required
-	Cache_Control, Expires: Unbounded_String; -- dito
+      Location,
+      -- AL: equivalent to Location, but has lesser priority,
+      -- only one is required:
+      AL,
+      Cache_Control,
+      -- Expires: equivalent to Cache_Control, but with a lesser priority,
+      -- only one required:
+      Expires: Unbounded_String;
    end record;
 end SSDP.Services;

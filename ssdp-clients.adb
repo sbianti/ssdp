@@ -61,8 +61,8 @@ package body SSDP.Clients is
    end "<";
    package Service_Sorting is new Service_Vectors.Generic_Sorting;
 
-   function Initialize_Device(Service_Type, Universal_Serial_Number: in String)
-			     return SSDP_Client is
+   function Initialize(Service_Type, Universal_Serial_Number: in String)
+		      return SSDP_Client is
       Device: SSDP_Client;
    begin
       if Service_Type = "" or Universal_Serial_Number = "" then
@@ -76,7 +76,7 @@ package body SSDP.Clients is
       Device.Universal_Serial_Number := To_US(Universal_Serial_Number);
 
       return Device;
-   end Initialize_Device;
+   end Initialize;
 
    procedure Set_Universal_Serial_Number(Device: in out SSDP_Client;
 					 Universal_Serial_Number: in String) is

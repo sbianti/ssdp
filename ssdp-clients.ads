@@ -24,8 +24,8 @@ package SSDP.Clients is
 
    type SSDP_Client is new Device_Type with private;
 
-   function Initialize_Device(Service_Type, Universal_Serial_Number: in String)
-			     return SSDP_Client;
+   function Initialize(Service_Type, Universal_Serial_Number: in String)
+		      return SSDP_Client;
 
    procedure Set_Universal_Serial_Number(Device: in out SSDP_Client;
 					 Universal_Serial_Number: in String);
