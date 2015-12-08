@@ -82,7 +82,7 @@ package body SSDP.Clients is
       begin
 	 Service_Sorting.Sort(Services);
 	 Next_Timestamp := Get_Delay(Services.First_Element.Expiration);
-	 Pl_Debug("###### next delay:" & Natural(Next_Timestamp)'Img & "s");
+	 Pl_Debug("Next timeout:" & Natural(Next_Timestamp)'Img & "s");
       end Sort_And_Update;
    begin
       loop
@@ -110,10 +110,12 @@ package body SSDP.Clients is
 	       end Add_Service;
 	    or
 	       delay Next_Timestamp;
-	       Pl_Debug("Timeout for " & To_String
+	       Pl_Debug("Timeout for USN=“" & To_String
 			  (Services.First_Element.Universal_Serial_Number) &
-			  " :: " &
-			  To_String(Services.First_Element.Service_Type));
+			  "”" & EOL &
+			  "             NT=“" &
+			  To_String(Services.First_Element.Service_Type) & "”");
+
 	       Services.Delete_First;
 
 	       exit when Services.Length = 0;
@@ -197,7 +199,7 @@ package body SSDP.Clients is
 
       function Get_Expiration(Expiration_Header: in Expiration_Type;
 			      Str: in String) return Time is
-	 use Ada.Strings.Fixed;
+	 use Ada.Strings.Fixed, Ada.Strings;
 
 	 package Natural_IO is new Ada.Text_IO.Integer_IO(Natural);
 
@@ -221,7 +223,7 @@ package body SSDP.Clients is
 		 with "max-age header-value has no value";
 	       end if;
 
-	       Pl_Debug("max-age =" & Str(Posn + 1..Str'Last));
+	       Pl_Debug("max-age = " & Trim(Str(Posn + 1..Str'Last), Left));
 
 	       -- We avoid decimal values by getting a natural, not a duration:
 	       Natural_IO.Get(Str(Posn + 1..Str'Last), Expiration_Val, Last);
@@ -247,14 +249,15 @@ package body SSDP.Clients is
       begin
 	 for I in 1..Services.Length loop
 	    if Services.Element(I) = Service then
-	       Pl_Debug("Update device: " & To_String(USN) & ' ' &
-			  To_String(NT));
+	       Pl_Debug("Updating device: USN=“" & To_String(USN) & "”" & EOL &
+			  "                  NT=“" & To_String(NT) & "”");
 	       Service_Manager.Replace_Service(I, Service);
 	       return;
 	    end if;
 	 end loop;
 
-	 Pl_Debug("Adding device: " & To_String(USN) & ' ' & To_String(NT));
+	 Pl_Debug("Adding device: USN=“" & To_String(USN) & "”" & EOL &
+		    "                NT=“" & To_String(NT) & "”");
 
 	 Service_Manager.Add_Service(Service);
       end Update;
@@ -329,15 +332,19 @@ package body SSDP.Clients is
 		  begin
 		     for I in 1..Services.Length loop
 			if Services.Element(I) = Service then
-			   Pl_Debug("Removing service: " & To_String(USN) &
-				      ' ' & To_String(NT));
+			   Pl_Debug("Removing service: USN=“" & To_String(USN) &
+				      "”" & EOL &
+				      "                   NT=“" &
+				      To_String(NT) & "”");
 			   Service_Manager.Remove_service(I);
 			   return;
 			end if;
 		     end loop;
 
-		     Pl_Debug("Untracked service: " & To_String(USN) & ' ' &
-				To_String(NT));
+		     Pl_Debug("Untracked service: USN=“" & To_String(USN) & "”"
+				& EOL &
+				"                    NT=“" & To_String(NT) &
+				"”");
 		  end Bye_Bye;
 	       begin
 		  if NTS = "ssdp:byebye" then
@@ -529,9 +536,9 @@ package body SSDP.Clients is
 	       Parse_Response(To_String(Msg(1..Last)));
 	    exception
 	       when E: SSDP_Message_Malformed =>
-		  Pl_Debug("Message malformed:" & Exception_Message(E));
+		  Pl_Debug(Exception_Information(E));
 	       when E: others =>
-		  Pl_Error(Exception_Message(E));
+		  Pl_Error(Exception_Information(E));
 	    end;
 	 end loop;
       end Unicast_Listener;
@@ -546,7 +553,7 @@ package body SSDP.Clients is
 	    Parse_Message(To_String(Msg(1..Last)));
 	 exception
 	    when E: Not_An_SSDP_Message | SSDP_Message_Malformed =>
-	       Pl_Debug(Exception_Message(E));
+	       Pl_Debug(Exception_Information(E));
 	 end;
       end loop;
    end Finder_Job;
