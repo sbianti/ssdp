@@ -44,8 +44,8 @@ procedure Test_Service is
    Default_Service_Type: aliased constant String := "chauffage:central";
    Service_Type_Value: access constant String;
 
-   Default_Lifetime: aliased constant String := "600";
-   Lifetime_Value: access constant String;
+   Default_Lifetime: constant Positive := 600;
+   Lifetime_Value: Positive;
 
    Null_Header: SSDP.Message_Header_Array(1..0);
 
@@ -60,8 +60,8 @@ procedure Test_Service is
 			       Universal_Serial_Number => UUID_Value.all,
 			       Location => "",
 			       AL => "<http://halsensortester.mp.intel.com>",
-			       Cache_Control => "max-age = " &
-				 Lifetime_Value.all,
+			       Cache_Control =>
+				 "max-age = " & Lifetime_Value'Img,
 			       Expires => "");
    end Default_Initialization;
 
@@ -157,6 +157,9 @@ procedure Test_Service is
    use Scheduling;
 
    Schedule: Schedule_Type;
+
+   package Natural_IO is new Ada.Text_IO.Integer_IO(Positive);
+   Last: Natural;
 begin
    Result := Parse(Setting, Help_Header, "", Help_Sections =>
 		     (Batch => Help_Section, others => Null_Unbounded_String));
@@ -174,9 +177,9 @@ begin
    end if;
 
    if Result(Lifetime).Is_Set then
-      Lifetime_Value := new String'(Get_Value(Result(Lifetime), 1));
+      Natural_IO.Get(Result(Lifetime).Value.all, Lifetime_Value, Last);
    else
-      Lifetime_Value := Default_Lifetime'Access;
+      Lifetime_Value := Default_Lifetime;
    end if;
 
    if not Result(Batch).Is_Set then
@@ -195,11 +198,8 @@ begin
 
       if Result(Bye_Bye_On_Exit).Is_Set then
 	 declare
-	    package Natural_IO is new Ada.Text_IO.Integer_IO(Positive);
-
 	    Bye_Bye_Value: String := Get_Value(Result(Bye_Bye_On_Exit), 1);
 	    Bye_Bye_Number: Positive;
-	    Last: Natural;
 	 begin
 
 	    if Bye_Bye_Value = "" then
