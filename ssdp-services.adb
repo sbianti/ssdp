@@ -22,6 +22,7 @@ with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Exceptions;
 with Ada.Containers.Vectors;
+with Ada.Calendar.Formatting;
 
 with SSDP.Utils;
 
@@ -353,7 +354,8 @@ package body SSDP.Services is
 	   with "M-SEARCH line doesn't begin at character 0";
 	 elsif Posn_M_SEARCH = 1 then
 	    Pl_Debug("____________________________________________________");
-	    Pl_Debug("From " & Image(Addr));
+	    Pl_Debug("From " & Image(Addr) & " at " &
+		       Ada.Calendar.Formatting.Image(Ada.Calendar.Clock));
 	    Pl_Debug("M-search received");
 	    Get_M_Search_Info(Lines(2..Lines'Last));
 	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");

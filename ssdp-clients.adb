@@ -22,7 +22,7 @@ with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Exceptions;
 with Ada.Containers.Vectors;
-with Ada.Calendar;
+with Ada.Calendar.Formatting;
 with Ada.Text_IO;
 
 with Gnat.Sockets;
@@ -389,7 +389,8 @@ package body SSDP.Clients is
 	   with "Notify line doesn't begin at character 0";
 	 elsif Posn = 1 then
 	    Pl_Debug("____________________________________________________");
-	    Pl_Debug("From " & Image(Addr) & " [Multicast]");
+	    Pl_Debug("From " & Image(Addr) & " [Multicast] at " &
+		       Formatting.Image(Clock));
 	    Pl_Debug("Notify received");
 	    Get_Notify_Info(Lines(2..Lines'Last));
 	    Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
@@ -519,7 +520,8 @@ package body SSDP.Clients is
 	      with "Reply to M-SEARCH line doesn't begin at character 0";
 	    elsif Posn = 1 then
 	       Pl_Debug("____________________________________________________");
-	       Pl_Debug("From " & Image(Addr) & " [Unicast]");
+	       Pl_Debug("From " & Image(Addr) & " [Unicast] at " &
+			  Formatting.Image(Clock));
 	       Pl_Debug("Reply to M-SEARCH received");
 	       Get_M_Search_Response(Lines(2..Lines'Last));
 	       Pl_Debug("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯");
