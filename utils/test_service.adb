@@ -58,8 +58,7 @@ procedure Test_Service is
 			Universal_Serial_Number => UUID_Value.all,
 			Location => "",
 			AL => "<http://halsensortester.mp.intel.com>",
-			Cache_Control =>
-			  "max-age = " & Lifetime_Value'Img,
+			Cache_Control => Lifetime_Value,
 			Expires => "");
    end Default_Initialization;
 

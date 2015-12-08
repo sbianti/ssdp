@@ -31,12 +31,13 @@ package SSDP.Services is
    function "=" (Left, Right: in SSDP_Service) return Boolean;
 
    function Initialize(Service_Type, Universal_Serial_Number,
-			 Location, Cache_Control: String)
-		      return SSDP_Service;
+			 Location: in String;
+		       Cache_Control: in Positive) return SSDP_Service;
 
    function Initialize(Service_Type, Universal_Serial_Number,
 			 Location, AL, -- only one is required
-			 Cache_Control, Expires: String) -- dito
+			 Expires: in String;
+		       Cache_Control: in Natural := 0) -- dito
 		      return SSDP_Service;
 
    procedure M_Search_Response
@@ -63,8 +64,8 @@ private
       Location,
       -- AL: equivalent to Location, but has lesser priority,
       -- only one is required:
-      AL,
-      Cache_Control,
+      AL: Unbounded_String;
+      Cache_Control: Natural;
       -- Expires: equivalent to Cache_Control, but with a lesser priority,
       -- only one required:
       Expires: Unbounded_String;

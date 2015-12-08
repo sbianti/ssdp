@@ -41,16 +41,17 @@ package body SSDP.Services is
    Device_Vector: Device_Vectors.Vector;
 
    function Initialize(Service_Type, Universal_Serial_Number,
-			 Location, Cache_Control: in String)
-		      return SSDP_Service is
+			 Location: in String;
+		       Cache_Control: in Positive) return SSDP_Service is
    begin
       return Initialize(Service_Type, Universal_Serial_Number,
-			Location, "", Cache_Control, "");
+			Location, "", "", Cache_Control);
    end Initialize;
 
    function Initialize(Service_Type, Universal_Serial_Number,
 			 Location, AL, -- only one is required
-			 Cache_Control, Expires: String) -- dito
+			 Expires: in String;
+		       Cache_Control: in Natural := 0) -- dito
 		      return SSDP_Service is
 
       function Service_Already_Exists(USN, ST: in String) return Boolean is
@@ -77,7 +78,7 @@ package body SSDP.Services is
 	   with "Location or AL should be set";
       end if;
 
-      if Cache_Control = "" and Expires = "" then
+      if Cache_Control = 0 and Expires = "" then
 	 raise Header_Malformed
 	   with "Cache_Control or Expires should be set";
       end if;
@@ -92,7 +93,7 @@ package body SSDP.Services is
 
       Device := (To_US(Service_Type), To_US(Universal_Serial_Number),
 		 To_US(Location), To_US(AL),
-		 To_US(Cache_Control), To_US(Expires));
+		 Cache_Control, To_US(Expires));
 
       Device_Vector.Append(Device);
 
@@ -118,7 +119,7 @@ package body SSDP.Services is
 	with "Header «USN» (Universal Service Type) is missing";
       end if;
 
-      if Device.Cache_Control = "" and Device.Expires = "" then
+      if Device.Cache_Control = 0 and Device.Expires = "" then
 	 raise Header_Malformed
 	   with "Cache-control or Expires missing (at least one is required)";
       end if;
@@ -135,9 +136,9 @@ package body SSDP.Services is
 	To_US("USN: ") & Device.Universal_Serial_Number &
 	To_US(EOL & "ST: ") & Device.Service_Type & To_US(EOL);
 
-      if Device.Cache_Control /= "" then
-	 Append(Required_Part, To_US("Cache-Control: ") &
-		  Device.Cache_Control & To_US(EOL));
+      if Device.Cache_Control /= 0 then
+	 Append(Required_Part, To_US("Cache-Control: max-age =") &
+		  To_US(Device.Cache_Control'Img) & To_US(EOL));
       end if;
 
       if Device.Expires /= "" then
@@ -167,7 +168,7 @@ package body SSDP.Services is
 	" at least one is required";
       end if;
 
-      if Device.Cache_Control = "" and Device.Expires = "" then
+      if Device.Cache_Control = 0 and Device.Expires = "" then
 	 raise Header_Malformed
 	   with "Both headers «Cache-Control» and «Expires» are missing," &
 	   " at least one is required";
@@ -186,9 +187,9 @@ package body SSDP.Services is
 	 Append(Required_Part, To_US("AL: ") & Device.AL & To_US(EOL));
       end if;
 
-      if Device.Cache_Control /= "" then
-	 Append(Required_Part, To_US("Cache-Control: ") &
-		  Device.Cache_Control & To_US(EOL));
+      if Device.Cache_Control /= 0 then
+	 Append(Required_Part, To_US("Cache-Control: max-age =") &
+		  To_US(Device.Cache_Control'Img) & To_US(EOL));
       end if;
 
       if Device.Expires /= "" then
@@ -343,8 +344,8 @@ package body SSDP.Services is
 	       for I in Devices'Range loop
 		  Pl_Debug("Matching device:" &
 			     To_String(Devices(I).Universal_Serial_Number) &
-			     " with cache-control: [" &
-			     To_String(Devices(I).Cache_Control) & "]");
+			     " with cache-control:" &
+			     Devices(I).Cache_Control'Img);
 		  M_Search_Response(Devices(I), To_String(USN_M_Search),
 				    To => Addr);
 	       end loop;
